@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "API Request Inspector",
+  "description": "Inspect API traffic in a lightweight Chrome DevTools panel.",
+  "version": "1.0.0",
+  "devtools_page": "src/devtools/devtools.html"
+}
