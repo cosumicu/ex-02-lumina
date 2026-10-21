@@ -17,7 +17,7 @@ Preact, TypeScript, Vite, Tailwind CSS, Preact Signals, Lucide, and Vitest. Opti
 
 ## Features
 
-The panel captures and lists requests with method, endpoint, status, and duration. Select a row for query parameters, request and response headers, bodies, content type, JSON formatting, and copy controls. Search, method tabs, status filters (`404`, `4xx`, or `error`), pause/resume, and clear are available above the list.
+The panel captures and lists requests with method, endpoint, status, and duration. Select a row for query parameters, request and response headers, bodies, content type, JSON formatting, and copy controls. The **Code** tab generates copyable cURL, JavaScript Fetch, Axios, Python Requests, and Java HttpClient examples from the captured method, URL, headers, and body. Generated code can contain credentials from the captured request; review it before sharing. Search, method tabs, status filters (`404`, `4xx`, or `error`), pause/resume, and clear are available above the list.
 
 The newest 500 requests stay in memory. Response bodies load only when selected; the visible preview is capped at one million characters. Opening another row releases the previous body. The optional local snapshot stores only timestamp, method, origin, status, and timing. It does not store paths, query parameters, headers, or bodies.
 
