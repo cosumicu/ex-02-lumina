@@ -1,6 +1,6 @@
-# API Request Inspector
+# EX-02 Lumina
 
-API Request Inspector is a Manifest V3 Chrome DevTools extension. It captures completed HTTP and HTTPS requests from the inspected tab and displays request and response details in a panel styled after the supplied reference image.
+EX-02 Lumina is a Manifest V3 Chrome DevTools extension. It captures completed HTTP and HTTPS requests from the inspected tab and displays request and response details in a panel styled after the supplied reference image.
 
 ## Stack
 
@@ -11,7 +11,7 @@ Preact, TypeScript, Vite, Tailwind CSS, Preact Signals, Lucide, and Vitest. Opti
 1. Install [pnpm](https://pnpm.io/installation) and run `pnpm install`.
 2. Run `pnpm build`.
 3. Open `chrome://extensions`, enable **Developer mode**, select **Load unpacked**, and choose the generated `dist` folder.
-4. Open DevTools on the tab to inspect and select **API Inspector**. Reload the page to capture startup requests.
+4. Open DevTools on the tab to inspect and select **EX-02 Lumina**. Reload the page to capture startup requests.
 
 `pnpm dev` starts a local UI preview. Add `?demo=1` to `/src/panel/panel.html` during development to see sample rows. Demo data is excluded from the production build.
 
