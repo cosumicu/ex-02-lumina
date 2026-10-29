@@ -19,10 +19,12 @@ export function queryParameters(entry: HarEntry): QueryParameter[] {
 export function requestBody(entry: HarEntry): string {
   const post = entry.request.postData;
   if (typeof post?.text === "string") return post.text;
-  if (post?.params?.length)
-    return post.params
-      .map((param) => `${param.name}=${param.value ?? "[file or unavailable]"}`)
-      .join("&");
+  if (post?.params?.length) {
+    const params = new URLSearchParams();
+    for (const param of post.params)
+      params.append(param.name, param.value ?? "[file or unavailable]");
+    return params.toString();
+  }
   return "";
 }
 

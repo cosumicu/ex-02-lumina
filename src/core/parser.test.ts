@@ -17,6 +17,23 @@ describe("request parsing", () => {
     expect(queryParameters(entry)).toEqual([{ name: "a", value: "1" }]);
     expect(requestBody(entry)).toBe('{"ok":true}');
   });
+  it("encodes reconstructed form parameter names and values", () => {
+    const form: HarEntry = {
+      request: {
+        method: "POST",
+        url: "https://example.test/form",
+        postData: {
+          mimeType: "application/x-www-form-urlencoded",
+          params: [
+            { name: "a&b", value: "x=y & z" },
+            { name: "empty", value: "" },
+          ],
+        },
+      },
+      response: {},
+    };
+    expect(requestBody(form)).toBe("a%26b=x%3Dy+%26+z&empty=");
+  });
   it("supports both Chrome response callback forms", () => {
     expect(normalizeContent("hello", "")).toEqual({
       text: "hello",
