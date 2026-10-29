@@ -5,7 +5,7 @@ export function formatBody(text: string, mimeType = ''): { text: string; json: b
   const tooLarge = text.length > MAX_PREVIEW_CHARS;
   let output = tooLarge ? text.slice(0, MAX_PREVIEW_CHARS) : text;
   let json = false;
-  if (!tooLarge && (/\bjson\b|\+json\b/i.test(mimeType) || /^\s*[\[{]/.test(text))) {
+  if (!tooLarge && (/\bjson\b|\+json\b/i.test(mimeType) || /^\s*[{[]/.test(text))) {
     try { output = JSON.stringify(JSON.parse(text), null, 2); json = true; }
     catch { /* Preserve malformed JSON for inspection. */ }
   }
