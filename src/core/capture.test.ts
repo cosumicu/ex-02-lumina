@@ -1,27 +1,46 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clearCapture, loadResponseBody, startCapture } from './capture';
-import { recording, requests, selectRequest } from '../panel/stores/requestStore';
-import type { HarEntry } from '../types/request';
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { clearCapture, loadResponseBody, startCapture } from "./capture";
+import {
+  recording,
+  requests,
+  selectRequest,
+} from "../panel/stores/requestStore";
+import type { HarEntry } from "../types/request";
 
 function entry(url: string, content = '{"ok":true}'): HarEntry {
   return {
-    startedDateTime: new Date().toISOString(), time: 80,
-    request: { method: 'GET', url }, response: { status: 200 },
-    getContent: callback => callback({ content, encoding: '' })
+    startedDateTime: new Date().toISOString(),
+    time: 80,
+    request: { method: "GET", url },
+    response: { status: 200 },
+    getContent: (callback) => callback({ content, encoding: "" }),
   };
 }
 
-afterEach(() => { clearCapture(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  clearCapture();
+  vi.unstubAllGlobals();
+});
 
-describe('DevTools capture', () => {
-  it('merges HAR history with live events, honors pause, and loads a body on selection', async () => {
-    const first = entry('https://example.test/api/first');
-    const second = entry('https://example.test/api/second');
+describe("DevTools capture", () => {
+  it("merges HAR history with live events, honors pause, and loads a body on selection", async () => {
+    const first = entry("https://example.test/api/first");
+    const second = entry("https://example.test/api/second");
     let listener: ((value: HarEntry) => void) | undefined;
-    vi.stubGlobal('chrome', { devtools: { network: {
-      onRequestFinished: { addListener: (fn: (value: HarEntry) => void) => { listener = fn; }, removeListener: () => {} },
-      getHAR: (callback: (value: { entries: HarEntry[] }) => void) => callback({ entries: [first] })
-    } } });
+    vi.stubGlobal("chrome", {
+      devtools: {
+        network: {
+          onRequestFinished: {
+            addListener: (fn: (value: HarEntry) => void) => {
+              listener = fn;
+            },
+            removeListener: () => {},
+          },
+          getHAR: (callback: (value: { entries: HarEntry[] }) => void) =>
+            callback({ entries: [first] }),
+        },
+      },
+    });
     const stop = startCapture();
     await Promise.resolve();
     expect(requests.value).toHaveLength(1);

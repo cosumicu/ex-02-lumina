@@ -1,7 +1,15 @@
-import { isHttpUrl } from './filters';
-import { normalizeContent } from './parser';
-import { addRequests, clearRequests, MAX_REQUESTS, recording, requests, selectedId, updateRequest } from '../panel/stores/requestStore';
-import type { HarEntry, InspectorRequest } from '../types/request';
+import { isHttpUrl } from "./filters";
+import { normalizeContent } from "./parser";
+import {
+  addRequests,
+  clearRequests,
+  MAX_REQUESTS,
+  recording,
+  requests,
+  selectedId,
+  updateRequest,
+} from "../panel/stores/requestStore";
+import type { HarEntry, InspectorRequest } from "../types/request";
 
 let generation = 0;
 let sequence = 0;
@@ -11,11 +19,11 @@ const queued: InspectorRequest[] = [];
 let flushScheduled = false;
 
 function keyOf(entry: HarEntry): string {
-  return `${entry.startedDateTime || ''}\u0000${entry.request.method}\u0000${entry.request.url}\u0000${entry.time || ''}`;
+  return `${entry.startedDateTime || ""}\u0000${entry.request.method}\u0000${entry.request.url}\u0000${entry.time || ""}`;
 }
 
 function capture(entry: HarEntry): void {
-  if (!recording.peek() || !isHttpUrl(entry.request?.url || '')) return;
+  if (!recording.peek() || !isHttpUrl(entry.request?.url || "")) return;
   const key = keyOf(entry);
   if (keys.has(key)) return;
   keys.add(key);
@@ -24,7 +32,8 @@ function capture(entry: HarEntry): void {
   if (queued.length > MAX_REQUESTS) keys.delete(keyOf(queued.shift()!.entry));
   if (!flushScheduled) {
     flushScheduled = true;
-    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(flush);
+    if (typeof requestAnimationFrame === "function")
+      requestAnimationFrame(flush);
     else queueMicrotask(flush);
   }
 }
@@ -46,21 +55,25 @@ export function clearCapture(): void {
 }
 
 export function startCapture(): () => void {
-  if (typeof chrome === 'undefined' || !chrome.devtools?.network) return () => {};
+  if (typeof chrome === "undefined" || !chrome.devtools?.network)
+    return () => {};
   const initialGeneration = generation;
-  const listener = (entry: chrome.devtools.network.Request) => capture(entry as unknown as HarEntry);
+  const listener = (entry: chrome.devtools.network.Request) =>
+    capture(entry as unknown as HarEntry);
   chrome.devtools.network.onRequestFinished.addListener(listener);
-  chrome.devtools.network.getHAR(har => {
+  chrome.devtools.network.getHAR((har) => {
     if (initialGeneration !== generation) return;
-    for (const entry of har?.entries || []) capture(entry as unknown as HarEntry);
+    for (const entry of har?.entries || [])
+      capture(entry as unknown as HarEntry);
   });
-  return () => chrome.devtools.network.onRequestFinished.removeListener(listener);
+  return () =>
+    chrome.devtools.network.onRequestFinished.removeListener(listener);
 }
 
 export function loadResponseBody(request: InspectorRequest): void {
   if (request.body || request.bodyLoading || pending.has(request.id)) return;
-  if (typeof request.entry.getContent !== 'function') {
-    updateRequest(request.id, { body: { text: '', base64: false } });
+  if (typeof request.entry.getContent !== "function") {
+    updateRequest(request.id, { body: { text: "", base64: false } });
     return;
   }
   const token = generation;
@@ -70,10 +83,16 @@ export function loadResponseBody(request: InspectorRequest): void {
     request.entry.getContent((content, encoding) => {
       pending.delete(request.id);
       if (token !== generation || selectedId.peek() !== request.id) return;
-      updateRequest(request.id, { body: normalizeContent(content, encoding), bodyLoading: false });
+      updateRequest(request.id, {
+        body: normalizeContent(content, encoding),
+        bodyLoading: false,
+      });
     });
   } catch {
     pending.delete(request.id);
-    updateRequest(request.id, { body: { text: '', base64: false }, bodyLoading: false });
+    updateRequest(request.id, {
+      body: { text: "", base64: false },
+      bodyLoading: false,
+    });
   }
 }
