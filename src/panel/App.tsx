@@ -1,7 +1,13 @@
 import { useEffect } from "preact/hooks";
 import { Activity } from "lucide-preact";
 import { startCapture } from "../core/capture";
-import { recording, requests, visibleRequests } from "./stores/requestStore";
+import {
+  discardedRequests,
+  MAX_REQUESTS,
+  recording,
+  requests,
+  visibleRequests,
+} from "./stores/requestStore";
 import { RequestFilters } from "./components/RequestFilters";
 import { RequestList } from "./components/RequestList";
 import { RequestDetails } from "./components/RequestDetails";
@@ -34,15 +40,29 @@ export function App() {
           </span>
         </header>
         <RequestFilters />
-        <RequestList />
-        <p
-          class="px-[18px] py-[17px] text-sm text-[#8a908c]"
+        <div
+          class={`mx-[18px] mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs ${requests.value.length >= MAX_REQUESTS ? "bg-[#fff7e7] text-[#8a5b16]" : "bg-[#f6f8f6] text-[#68746b]"}`}
           aria-live="polite"
         >
-          {visibleRequests.value.length === requests.value.length
-            ? `${requests.value.length} captured request${requests.value.length === 1 ? "" : "s"}`
-            : `${visibleRequests.value.length} of ${requests.value.length} requests`}
-        </p>
+          <span>
+            {visibleRequests.value.length === requests.value.length
+              ? `${requests.value.length} requests shown`
+              : `${visibleRequests.value.length} of ${requests.value.length} requests shown`}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {requests.value.length >= MAX_REQUESTS
+              ? `Latest ${MAX_REQUESTS} kept (limit reached)`
+              : `Keeps latest ${MAX_REQUESTS}`}
+          </span>
+          {discardedRequests.value > 0 && (
+            <span class="font-medium">
+              · {discardedRequests.value} older request
+              {discardedRequests.value === 1 ? "" : "s"} removed
+            </span>
+          )}
+        </div>
+        <RequestList />
         <RequestDetails />
       </main>
     </div>

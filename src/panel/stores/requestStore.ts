@@ -4,6 +4,7 @@ import type { InspectorRequest, MethodFilter } from "../../types/request";
 
 export const MAX_REQUESTS = 500;
 export const requests = signal<InspectorRequest[]>([]);
+export const discardedRequests = signal(0);
 export const selectedId = signal<string | null>(null);
 export const recording = signal(true);
 export const search = signal("");
@@ -32,8 +33,14 @@ export function addRequest(request: InspectorRequest): void {
   addRequests([request]);
 }
 
-export function addRequests(incoming: InspectorRequest[]): void {
-  const next = [...requests.peek(), ...incoming].slice(-MAX_REQUESTS);
+export function addRequests(
+  incoming: InspectorRequest[],
+  discardedBeforeFlush = 0,
+): void {
+  const combined = [...requests.peek(), ...incoming];
+  const overflow = Math.max(0, combined.length - MAX_REQUESTS);
+  const next = combined.slice(-MAX_REQUESTS);
+  discardedRequests.value += discardedBeforeFlush + overflow;
   if (
     selectedId.peek() &&
     !next.some((request) => request.id === selectedId.peek())
@@ -60,6 +67,7 @@ export function selectRequest(id: string | null): void {
 
 export function clearRequests(): void {
   requests.value = [];
+  discardedRequests.value = 0;
   selectedId.value = null;
   recording.value = true;
 }

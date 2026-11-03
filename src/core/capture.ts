@@ -16,6 +16,7 @@ let sequence = 0;
 const keys = new Set<string>();
 const pending = new Set<string>();
 const queued: InspectorRequest[] = [];
+let queuedDiscarded = 0;
 let flushScheduled = false;
 
 function keyOf(entry: HarEntry): string {
@@ -29,7 +30,10 @@ function capture(entry: HarEntry): void {
   keys.add(key);
   const request: InspectorRequest = { id: String(++sequence), entry };
   queued.push(request);
-  if (queued.length > MAX_REQUESTS) keys.delete(keyOf(queued.shift()!.entry));
+  if (queued.length > MAX_REQUESTS) {
+    keys.delete(keyOf(queued.shift()!.entry));
+    queuedDiscarded++;
+  }
   if (!flushScheduled) {
     flushScheduled = true;
     if (typeof requestAnimationFrame === "function")
@@ -41,7 +45,8 @@ function capture(entry: HarEntry): void {
 function flush(): void {
   flushScheduled = false;
   if (!queued.length) return;
-  addRequests(queued.splice(0));
+  addRequests(queued.splice(0), queuedDiscarded);
+  queuedDiscarded = 0;
   keys.clear();
   for (const request of requests.peek()) keys.add(keyOf(request.entry));
 }
@@ -51,6 +56,7 @@ export function clearCapture(): void {
   keys.clear();
   pending.clear();
   queued.length = 0;
+  queuedDiscarded = 0;
   clearRequests();
 }
 

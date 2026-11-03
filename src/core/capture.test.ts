@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCapture, loadResponseBody, startCapture } from "./capture";
 import {
+  discardedRequests,
+  MAX_REQUESTS,
   recording,
   requests,
   selectRequest,
@@ -59,6 +61,38 @@ describe("DevTools capture", () => {
     clearCapture();
     expect(requests.value).toHaveLength(0);
     expect(recording.value).toBe(true);
+    stop();
+  });
+
+  it("counts requests displaced both before and after a queued capture flush", async () => {
+    const history = Array.from({ length: MAX_REQUESTS + 3 }, (_, index) =>
+      entry(`https://example.test/api/${index}`),
+    );
+    let listener: ((value: HarEntry) => void) | undefined;
+    vi.stubGlobal("chrome", {
+      devtools: {
+        network: {
+          onRequestFinished: {
+            addListener: (fn: (value: HarEntry) => void) => {
+              listener = fn;
+            },
+            removeListener: () => {},
+          },
+          getHAR: (callback: (value: { entries: HarEntry[] }) => void) =>
+            callback({ entries: history }),
+        },
+      },
+    });
+    const stop = startCapture();
+    await Promise.resolve();
+    expect(requests.value).toHaveLength(MAX_REQUESTS);
+    expect(discardedRequests.value).toBe(3);
+    listener?.(entry("https://example.test/api/new"));
+    await Promise.resolve();
+    expect(requests.value).toHaveLength(MAX_REQUESTS);
+    expect(discardedRequests.value).toBe(4);
+    clearCapture();
+    expect(discardedRequests.value).toBe(0);
     stop();
   });
 });
