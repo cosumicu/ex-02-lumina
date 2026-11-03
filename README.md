@@ -1,5 +1,3 @@
-![EX-02 Lumina icon](public/icons/icon.svg)
-
 # EX-02 Lumina
 
 Inspect HTTP traffic in a lightweight Chrome DevTools panel.
