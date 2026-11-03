@@ -28,7 +28,7 @@ After changing the extension code, run `pnpm build` and reload the extension in 
 - Search by method or URL. Filter by method or **Errors**, and use the status filter for a code such as `404`, a class such as `4xx`, or `error`.
 - Pause or resume capture. **Clear** removes the current list and resumes capture.
 - Open **Code** in a request's details to copy a cURL, JavaScript Fetch, Axios, Python Requests, or Java HttpClient example.
-- Use **Save summary locally** in the filter menu to store a snapshot in the extension's IndexedDB.
+- Use **Save summary locally** in the filter menu to store a snapshot in the extension's IndexedDB. **View saved summaries** lets you inspect or delete snapshots and choose to keep the latest 10, 20, or 50; older snapshots are removed when you save or lower the limit.
 
 > [!CAUTION]
 > Request details and generated code can include credentials or tokens from captured traffic. Review copied content before sharing it.
@@ -37,7 +37,7 @@ After changing the extension code, run `pnpm build` and reload the extension in 
 
 Requests stay in memory until cleared, displaced by newer requests, or the panel closes. Response bodies are loaded only when you open the **Response** tab; switching requests releases the previous body. Text previews are limited to one million characters. Chrome may omit response bodies, and binary or Base64 responses have no text preview.
 
-Saving a summary is optional. Each saved entry contains the timestamp, method, origin, status, and duration. Paths, query parameters, headers, and bodies are not saved. The panel does not currently provide a way to browse saved summaries.
+Saving a summary is optional. Each saved entry contains the timestamp, method, origin, status, and duration. Paths, query parameters, headers, and bodies are not saved. Summaries remain in IndexedDB until you delete them or the configured retention limit removes the oldest ones.
 
 Chrome may miss traffic that occurred before DevTools opened. Reload the inspected tab if the list is empty.
 
