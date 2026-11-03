@@ -23,16 +23,39 @@ database.version(1).stores({ sessions: "++id, createdAt" });
 
 export async function saveSession(
   requests: InspectorRequest[],
+  retentionLimit = 20,
 ): Promise<number> {
-  const id = await database.sessions.add({
-    createdAt: Date.now(),
-    requests: requests.map(savedMetadata),
+  return database.transaction("rw", database.sessions, async () => {
+    const id = await database.sessions.add({
+      createdAt: Date.now(),
+      requests: requests.map(savedMetadata),
+    });
+    if (id === undefined)
+      throw new Error("IndexedDB did not return a session id");
+    await pruneSessions(retentionLimit);
+    return id;
   });
-  if (id === undefined)
-    throw new Error("IndexedDB did not return a session id");
-  return id;
 }
 
-export async function latestSession(): Promise<SavedSession | undefined> {
-  return database.sessions.orderBy("createdAt").last();
+export async function listSessions(): Promise<SavedSession[]> {
+  return database.sessions.orderBy("id").reverse().toArray();
+}
+
+export async function deleteSession(id: number): Promise<void> {
+  await database.sessions.delete(id);
+}
+
+export async function clearSessions(): Promise<void> {
+  await database.sessions.clear();
+}
+
+export async function pruneSessions(limit: number): Promise<void> {
+  const count = await database.sessions.count();
+  const excess = Math.max(0, count - Math.max(1, Math.floor(limit)));
+  if (!excess) return;
+  const oldestIds = await database.sessions
+    .orderBy("id")
+    .limit(excess)
+    .primaryKeys();
+  await database.sessions.bulkDelete(oldestIds);
 }

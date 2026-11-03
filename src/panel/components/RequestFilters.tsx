@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { CirclePause, CirclePlay, Filter, Search, Trash2 } from "lucide-preact";
 import { clearCapture } from "../../core/capture";
 import {
@@ -10,6 +10,8 @@ import {
   statusFilter,
 } from "../stores/requestStore";
 import type { MethodFilter } from "../../types/request";
+import { getRetentionLimit } from "../../storage/retention";
+import { SavedSessions } from "./SavedSessions";
 
 const tabs: MethodFilter[] = [
   "All",
@@ -24,6 +26,9 @@ const tabs: MethodFilter[] = [
 export function RequestFilters() {
   const [input, setInput] = useState(search.value);
   const [message, setMessage] = useState("");
+  const [showSessions, setShowSessions] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const closeSessions = useCallback(() => setShowSessions(false), []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       search.value = input;
@@ -37,13 +42,17 @@ export function RequestFilters() {
   }, [message]);
 
   async function save() {
+    if (saving || !requests.peek().length) return;
+    setSaving(true);
     try {
       const { saveSession } = await import("../../storage/database");
-      await saveSession(requests.peek());
+      await saveSession(requests.peek(), getRetentionLimit());
       setMessage("Request summary saved locally");
       filterOpen.value = false;
     } catch {
       setMessage("Could not save this session");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -123,12 +132,24 @@ export function RequestFilters() {
               <option value="error" />
             </datalist>
           </label>
-          <button
-            onClick={save}
-            class="ml-auto rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0]"
-          >
-            Save summary locally
-          </button>
+          <div class="ml-auto flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                setShowSessions(true);
+                filterOpen.value = false;
+              }}
+              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0]"
+            >
+              View saved summaries
+            </button>
+            <button
+              onClick={() => void save()}
+              disabled={saving || requests.value.length === 0}
+              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save summary locally"}
+            </button>
+          </div>
         </div>
       )}
       <div
@@ -156,6 +177,7 @@ export function RequestFilters() {
           {message}
         </div>
       )}
+      {showSessions && <SavedSessions onClose={closeSessions} />}
     </>
   );
 }
