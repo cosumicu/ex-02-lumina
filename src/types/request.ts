@@ -44,4 +44,11 @@ export interface InspectorRequest {
   bodyLoading?: boolean;
 }
 export type MethodFilter =
-  "All" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "Errors";
+  | "All"
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "HTTP errors"
+  | "No response";

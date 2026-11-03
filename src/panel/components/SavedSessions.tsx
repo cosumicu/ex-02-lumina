@@ -252,7 +252,9 @@ export function SavedSessions({ onClose }: { onClose: () => void }) {
                                   : "—"}
                               </td>
                               <td class="break-all px-3 py-2">{request.url}</td>
-                              <td class="px-3 py-2">{request.status || "—"}</td>
+                              <td class="px-3 py-2">
+                                {request.status || "No response"}
+                              </td>
                               <td class="px-3 py-2">
                                 {formatTime(request.time)}
                               </td>

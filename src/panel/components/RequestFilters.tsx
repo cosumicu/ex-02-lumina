@@ -20,7 +20,8 @@ const tabs: MethodFilter[] = [
   "PUT",
   "PATCH",
   "DELETE",
-  "Errors",
+  "HTTP errors",
+  "No response",
 ];
 
 export function RequestFilters() {
@@ -130,6 +131,7 @@ export function RequestFilters() {
               <option value="4xx" />
               <option value="5xx" />
               <option value="error" />
+              <option value="no response" />
             </datalist>
           </label>
           <div class="ml-auto flex flex-wrap items-center gap-2">

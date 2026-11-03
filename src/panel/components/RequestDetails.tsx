@@ -12,7 +12,12 @@ import {
   queryParameters,
   requestBody,
 } from "../../core/parser";
-import { requestHost, requestPath } from "../../core/filters";
+import {
+  isHttpError,
+  requestHost,
+  requestPath,
+  statusCode,
+} from "../../core/filters";
 import { formatBody, jsonTokens } from "../../utils/formatJson";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, selectedRequest } from "../stores/requestStore";
@@ -119,7 +124,7 @@ export function RequestDetails() {
   if (!selected) return null;
   const { entry, body } = selected;
   const query = queryParameters(entry);
-  const code = Number(entry.response.status) || 0;
+  const code = statusCode(entry);
   const snippet = generateCode(entry, format);
 
   async function copyCode() {
@@ -179,9 +184,10 @@ export function RequestDetails() {
         </div>
         <div class="flex shrink-0 flex-wrap gap-2 border-b border-[#e7ebe7] px-5 py-3 text-xs">
           <span
-            class={`rounded-full px-2 py-1 font-semibold ${code >= 400 ? "bg-[#fff0f0] text-[#e02f35]" : "bg-[#e8f8ec] text-[#008e3b]"}`}
+            class={`rounded-full px-2 py-1 font-semibold ${code === 0 ? "bg-[#fff5dd] text-[#895d11]" : isHttpError(code) ? "bg-[#fff0f0] text-[#e02f35]" : "bg-[#e8f8ec] text-[#008e3b]"}`}
           >
-            {code || "—"} {entry.response.statusText || ""}
+            {code === 0 ? "No HTTP response" : code}{" "}
+            {entry.response.statusText || ""}
           </span>
           <span class="rounded-full bg-[#f1f3f1] px-2 py-1 text-[#626a64]">
             {formatTime(entry.time)}
