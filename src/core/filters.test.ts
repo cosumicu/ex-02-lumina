@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isHttpUrl, matchesRequest, requestPath } from "./filters";
+import { isHttpUrl, matchesRequest, requestHost, requestPath } from "./filters";
 import type { HarEntry } from "../types/request";
 
 const entry: HarEntry = {
@@ -20,6 +20,7 @@ describe("request filters", () => {
   it("accepts only HTTP traffic and presents endpoint paths", () => {
     expect(isHttpUrl(entry.request.url)).toBe(true);
     expect(isHttpUrl("data:text/plain,x")).toBe(false);
-    expect(requestPath(entry.request.url)).toBe("/api/users?q=one");
+    expect(requestPath(entry.request.url)).toBe("/api/users");
+    expect(requestHost(entry.request.url)).toBe("example.test");
   });
 });

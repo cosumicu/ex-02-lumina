@@ -1,4 +1,5 @@
-import { requestPath } from "../../core/filters";
+import { requestHost, requestPath } from "../../core/filters";
+import { queryParameters } from "../../core/parser";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, visibleRequests } from "../stores/requestStore";
 
@@ -10,20 +11,32 @@ export function RequestList() {
         visible.map(({ id, entry }) => {
           const status = Number(entry.response?.status) || 0;
           const error = status >= 400;
+          const queryCount = queryParameters(entry).length;
           return (
             <button
               key={id}
               onClick={() => selectRequest(id)}
-              class="grid min-h-[95px] w-full grid-cols-[70px_minmax(0,1fr)_66px] items-start gap-3 border-b border-[#e9ebea] px-4 py-[18px] text-left last:border-b-0 hover:bg-[#f8faf9] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#22a653]"
-              aria-label={`${entry.request.method} ${requestPath(entry.request.url)}, status ${status || "unknown"}, ${formatTime(entry.time)}`}
+              class="grid min-h-[72px] w-full grid-cols-[58px_minmax(0,1fr)_60px] items-start gap-2 border-b border-[#e9ebea] px-4 py-3.5 text-left last:border-b-0 hover:bg-[#f8faf9] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#22a653]"
+              aria-label={`${entry.request.method} ${entry.request.url}, status ${status || "unknown"}, ${formatTime(entry.time)}`}
             >
               <span
                 class={`pt-[1px] text-[15px] font-medium ${entry.request.method === "GET" ? "text-[#2469d8]" : "text-[#151719]"}`}
               >
                 {entry.request.method}
               </span>
-              <span class="min-w-0 break-all pt-[1px] text-[15px] font-semibold text-[#17191c]">
-                {requestPath(entry.request.url)}
+              <span class="min-w-0 pt-[1px]">
+                <strong
+                  class="block truncate text-[15px] font-semibold text-[#17191c]"
+                  title={entry.request.url}
+                >
+                  {requestPath(entry.request.url)}
+                </strong>
+                <small class="block truncate pt-1 text-xs text-[#8a908c]">
+                  {requestHost(entry.request.url)}
+                  {queryCount
+                    ? ` · ${queryCount} ${queryCount === 1 ? "parameter" : "parameters"}`
+                    : ""}
+                </small>
               </span>
               <span class="flex flex-col items-end gap-1">
                 <strong

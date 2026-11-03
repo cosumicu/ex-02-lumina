@@ -7,9 +7,17 @@ export function isHttpUrl(url: string): boolean {
 export function requestPath(url: string): string {
   try {
     const parsed = new URL(url);
-    return `${parsed.pathname || "/"}${parsed.search}`;
+    return parsed.pathname || "/";
   } catch {
     return url || "Unknown request";
+  }
+}
+
+export function requestHost(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return "Unknown host";
   }
 }
 

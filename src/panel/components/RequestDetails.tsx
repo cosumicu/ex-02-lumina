@@ -12,7 +12,7 @@ import {
   queryParameters,
   requestBody,
 } from "../../core/parser";
-import { requestPath } from "../../core/filters";
+import { requestHost, requestPath } from "../../core/filters";
 import { formatBody, jsonTokens } from "../../utils/formatJson";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, selectedRequest } from "../stores/requestStore";
@@ -29,7 +29,7 @@ function Pairs({ items }: { items: Header[] }) {
           class="grid grid-cols-[minmax(95px,30%)_minmax(0,1fr)] gap-3 px-3 py-2 text-[13px]"
         >
           <span class="break-all font-medium text-[#306caa]">{name}</span>
-          <span class="break-all whitespace-pre-wrap text-[#383d3a]">
+          <span class="max-h-32 overflow-auto break-all whitespace-pre-wrap text-[#383d3a]">
             {value}
           </span>
         </div>
@@ -144,29 +144,40 @@ export function RequestDetails() {
         class="flex h-full w-full max-w-[570px] flex-col overflow-hidden bg-white shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div class="flex items-start justify-between gap-3 border-b border-[#e7ebe7] px-5 py-4">
-          <div class="min-w-0">
-            <div class="mb-1 flex items-center gap-2">
+        <div class="flex shrink-0 items-start justify-between gap-3 border-b border-[#e7ebe7] px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="mb-1 flex min-w-0 items-center gap-2">
               <span
-                class={`text-sm font-semibold ${entry.request.method === "GET" ? "text-[#2469d8]" : "text-[#222]"}`}
+                class={`shrink-0 text-sm font-semibold ${entry.request.method === "GET" ? "text-[#2469d8]" : "text-[#222]"}`}
               >
                 {entry.request.method}
               </span>
-              <strong class="break-all text-base text-[#202522]">
+              <strong
+                class="block min-w-0 truncate text-base text-[#202522]"
+                title={entry.request.url}
+              >
                 {requestPath(entry.request.url)}
               </strong>
             </div>
-            <p class="break-all text-xs text-[#7d8580]">{entry.request.url}</p>
+            <p
+              class="truncate text-xs text-[#7d8580]"
+              title={entry.request.url}
+            >
+              {requestHost(entry.request.url)}
+              {query.length
+                ? ` · ${query.length} ${query.length === 1 ? "query parameter" : "query parameters"}`
+                : ""}
+            </p>
           </div>
           <button
             aria-label="Close details"
             onClick={() => selectRequest(null)}
-            class="rounded p-1 text-[#566159] hover:bg-[#eff3ef]"
+            class="shrink-0 rounded p-1 text-[#566159] hover:bg-[#eff3ef]"
           >
             <X size={20} />
           </button>
         </div>
-        <div class="flex flex-wrap gap-2 border-b border-[#e7ebe7] px-5 py-3 text-xs">
+        <div class="flex shrink-0 flex-wrap gap-2 border-b border-[#e7ebe7] px-5 py-3 text-xs">
           <span
             class={`rounded-full px-2 py-1 font-semibold ${code >= 400 ? "bg-[#fff0f0] text-[#e02f35]" : "bg-[#e8f8ec] text-[#008e3b]"}`}
           >
@@ -179,7 +190,7 @@ export function RequestDetails() {
             {contentType(entry)}
           </span>
         </div>
-        <div class="flex gap-5 border-b border-[#e7ebe7] px-5">
+        <div class="flex shrink-0 gap-5 border-b border-[#e7ebe7] px-5">
           {(["Request", "Response", "Code"] as const).map((name) => (
             <button
               key={name}
@@ -199,7 +210,7 @@ export function RequestDetails() {
           {tab === "Request" ? (
             <>
               <Section title="URL" copyText={entry.request.url}>
-                <p class="break-all px-3 py-2 text-[13px]">
+                <p class="max-h-28 overflow-auto break-all px-3 py-2 text-[13px]">
                   {entry.request.url}
                 </p>
               </Section>
