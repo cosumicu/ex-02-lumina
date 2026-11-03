@@ -22,9 +22,9 @@ After changing the extension code, run `pnpm build` and reload the extension in 
 
 ## Use the panel
 
-- Browse the latest 500 captured requests by method, path, status, and duration. Select a row to see its URL, query parameters, headers, and available request and response bodies.
+- Browse the latest 500 captured requests by method, path, status, and duration. The count above the list shows the limit and how many older requests have been removed. Select a row to see its URL, query parameters, headers, and available request and response bodies.
 - Search by method or URL. Filter by method or **Errors**, and use the status filter for a code such as `404`, a class such as `4xx`, or `error`.
-- Pause or resume capture. **Clear** removes the current list and resumes capture.
+- Pause or resume capture. **Clear** removes the current list, resets the removed-request count, and resumes capture.
 - Open **Code** in a request's details to copy a cURL, JavaScript Fetch, Axios, Python Requests, or Java HttpClient example.
 - Use **Save summary locally** in the filter menu to store a snapshot in the extension's IndexedDB. **View saved summaries** lets you inspect or delete snapshots and choose to keep the latest 10, 20, or 50; older snapshots are removed when you save or lower the limit.
 
