@@ -1,27 +1,35 @@
 export const MAX_PREVIEW_CHARS = 1_000_000;
+export const INITIAL_PREVIEW_CHARS = 32_000;
+const MAX_FORMAT_CHARS = 64_000;
 
 export function formatBody(
   text: string,
   mimeType = "",
+  limit = MAX_PREVIEW_CHARS,
 ): { text: string; json: boolean; truncated: boolean } {
   if (!text) return { text: "", json: false, truncated: false };
-  const tooLarge = text.length > MAX_PREVIEW_CHARS;
-  let output = tooLarge ? text.slice(0, MAX_PREVIEW_CHARS) : text;
+  const previewLength = Math.max(1, Math.min(limit, MAX_PREVIEW_CHARS));
+  const tooLarge = text.length > previewLength;
+  let output = tooLarge ? text.slice(0, previewLength) : text;
   let json = false;
   if (
     !tooLarge &&
+    text.length <= MAX_FORMAT_CHARS &&
     (/\bjson\b|\+json\b/i.test(mimeType) || /^\s*[{[]/.test(text))
   ) {
     try {
-      output = JSON.stringify(JSON.parse(text), null, 2);
-      json = true;
+      const pretty = JSON.stringify(JSON.parse(text), null, 2);
+      if (pretty.length <= MAX_FORMAT_CHARS) {
+        output = pretty;
+        json = true;
+      }
     } catch {
       /* Preserve malformed JSON for inspection. */
     }
   }
-  const truncated = tooLarge || output.length > MAX_PREVIEW_CHARS;
+  const truncated = tooLarge || output.length > previewLength;
   return {
-    text: truncated ? output.slice(0, MAX_PREVIEW_CHARS) : output,
+    text: truncated ? output.slice(0, previewLength) : output,
     json,
     truncated,
   };

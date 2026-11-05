@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { normalizeContent, queryParameters, requestBody } from "./parser";
-import { formatBody, jsonTokens } from "../utils/formatJson";
+import {
+  formatBody,
+  INITIAL_PREVIEW_CHARS,
+  jsonTokens,
+} from "../utils/formatJson";
 import type { HarEntry } from "../types/request";
 
 const entry: HarEntry = {
@@ -52,5 +56,19 @@ describe("request parsing", () => {
     ).toBe(true);
     expect(formatBody("{bad", "application/json").text).toBe("{bad");
     expect(formatBody("x".repeat(1_000_001)).truncated).toBe(true);
+  });
+  it("limits large JSON previews before parsing or highlighting", () => {
+    const largeJson = `{"value":"${"x".repeat(100_000)}"}`;
+    const first = formatBody(
+      largeJson,
+      "application/json",
+      INITIAL_PREVIEW_CHARS,
+    );
+    expect(first.text).toHaveLength(INITIAL_PREVIEW_CHARS);
+    expect(first.truncated).toBe(true);
+    expect(first.json).toBe(false);
+    const expanded = formatBody(largeJson, "application/json", 128_000);
+    expect(expanded.truncated).toBe(false);
+    expect(expanded.json).toBe(false);
   });
 });

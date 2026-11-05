@@ -23,7 +23,12 @@ import {
   sanitizeBody,
   sanitizeEntryForCopy,
 } from "../../core/sanitizer";
-import { formatBody, jsonTokens } from "../../utils/formatJson";
+import {
+  formatBody,
+  INITIAL_PREVIEW_CHARS,
+  jsonTokens,
+  MAX_PREVIEW_CHARS,
+} from "../../utils/formatJson";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, selectedRequest } from "../stores/requestStore";
 import type { Header } from "../../types/request";
@@ -69,10 +74,31 @@ function Body({
   mimeType?: string;
   fallback: string;
 }) {
+  const [previewLimit, setPreviewLimit] = useState(INITIAL_PREVIEW_CHARS);
   if (!text) return <p class="px-3 py-2 text-sm text-[#89918b]">{fallback}</p>;
-  const formatted = formatBody(text, mimeType);
+  const formatted = formatBody(text, mimeType, previewLimit);
   return (
     <div class="max-h-[44vh] overflow-auto px-3 py-2">
+      {formatted.truncated &&
+        (previewLimit < MAX_PREVIEW_CHARS ? (
+          <div class="mb-2 flex flex-wrap items-center gap-2 text-xs text-[#69746c]">
+            <span>
+              Showing up to {previewLimit.toLocaleString()} characters.
+            </span>
+            <button
+              onClick={() =>
+                setPreviewLimit(Math.min(previewLimit * 2, MAX_PREVIEW_CHARS))
+              }
+              class="rounded border border-[#dce4dd] px-2 py-1 font-medium text-[#355f40] hover:bg-[#edf5ef]"
+            >
+              Show more
+            </button>
+          </div>
+        ) : (
+          <p class="mb-2 text-xs text-[#a86a17]">
+            Preview limited to 1 million characters.
+          </p>
+        ))}
       <pre class="whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-[#333b35]">
         {formatted.json
           ? jsonTokens(formatted.text).map((part, index) => (
@@ -82,11 +108,6 @@ function Body({
             ))
           : formatted.text}
       </pre>
-      {formatted.truncated && (
-        <p class="mt-2 text-xs text-[#a86a17]">
-          Preview limited to 1 million characters.
-        </p>
-      )}
     </div>
   );
 }
@@ -380,6 +401,7 @@ export function RequestDetails() {
                 redacted={redactCopies}
               >
                 <Body
+                  key={`${selected.id}-request`}
                   text={requestBody(entry)}
                   mimeType={entry.request.postData?.mimeType}
                   fallback="No request body available"
@@ -416,6 +438,7 @@ export function RequestDetails() {
                   </p>
                 ) : (
                   <Body
+                    key={`${selected.id}-response`}
                     text={body?.text || ""}
                     mimeType={entry.response.content?.mimeType}
                     fallback="No response body available"
