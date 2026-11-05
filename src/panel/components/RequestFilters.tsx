@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { CirclePause, CirclePlay, Filter, Search, Trash2 } from "lucide-preact";
 import { clearCapture } from "../../core/capture";
+import { isValidStatusFilter } from "../../core/filters";
 import {
   filterOpen,
   methodFilter,
@@ -30,6 +31,7 @@ export function RequestFilters() {
   const [showSessions, setShowSessions] = useState(false);
   const [saving, setSaving] = useState(false);
   const closeSessions = useCallback(() => setShowSessions(false), []);
+  const invalidStatus = !isValidStatusFilter(statusFilter.value);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       search.value = input;
@@ -112,28 +114,44 @@ export function RequestFilters() {
       </div>
       {filterOpen.value && (
         <div class="mx-[18px] mt-1 flex flex-wrap items-center gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] px-3 py-2 shadow-sm">
-          <label class="flex items-center gap-2 text-xs text-[#5f6561]">
-            Status{" "}
-            <input
-              aria-label="Filter status code"
-              type="search"
-              list="status-options"
-              placeholder="404 or 4xx"
-              value={statusFilter.value}
-              onInput={(event) =>
-                (statusFilter.value = event.currentTarget.value)
-              }
-              class="w-28 rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
-            />
-            <datalist id="status-options">
-              <option value="2xx" />
-              <option value="3xx" />
-              <option value="4xx" />
-              <option value="5xx" />
-              <option value="error" />
-              <option value="no response" />
-            </datalist>
-          </label>
+          <div class="flex flex-col gap-1">
+            <label class="flex items-center gap-2 text-xs text-[#5f6561]">
+              Status{" "}
+              <input
+                aria-label="Filter status code"
+                aria-invalid={invalidStatus}
+                aria-describedby={
+                  invalidStatus ? "status-filter-error" : undefined
+                }
+                type="search"
+                list="status-options"
+                placeholder="404 or 4xx"
+                value={statusFilter.value}
+                onInput={(event) =>
+                  (statusFilter.value = event.currentTarget.value)
+                }
+                class={`w-28 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${invalidStatus ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+              />
+              <datalist id="status-options">
+                <option value="2xx" />
+                <option value="3xx" />
+                <option value="4xx" />
+                <option value="5xx" />
+                <option value="error" />
+                <option value="no response" />
+              </datalist>
+            </label>
+            {invalidStatus && (
+              <p
+                id="status-filter-error"
+                role="alert"
+                class="text-xs text-[#b33434]"
+              >
+                Use a code from 100–599, 1xx–5xx, error, or no response. Status
+                filter not applied.
+              </p>
+            )}
+          </div>
           <div class="ml-auto flex flex-wrap items-center gap-2">
             <button
               onClick={() => {

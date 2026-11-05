@@ -29,6 +29,27 @@ export function isHttpError(code: number): boolean {
   return code >= 400 && code <= 599;
 }
 
+type StatusCriterion =
+  | { kind: "all" | "error" | "no-response" | "invalid" }
+  | { kind: "class"; hundreds: number }
+  | { kind: "exact"; code: number };
+
+function parseStatusFilter(input: string): StatusCriterion {
+  const value = input.trim().toLowerCase();
+  if (!value) return { kind: "all" };
+  if (value === "error") return { kind: "error" };
+  if (value === "no response" || value === "failed")
+    return { kind: "no-response" };
+  if (/^[1-5]xx$/.test(value))
+    return { kind: "class", hundreds: Number(value[0]) };
+  if (/^[1-5]\d{2}$/.test(value)) return { kind: "exact", code: Number(value) };
+  return { kind: "invalid" };
+}
+
+export function isValidStatusFilter(input: string): boolean {
+  return parseStatusFilter(input).kind !== "invalid";
+}
+
 export function matchesRequest(
   entry: HarEntry,
   search: string,
@@ -42,13 +63,15 @@ export function matchesRequest(
     if (code !== 0) return false;
   } else if (method !== "All" && entry.request.method.toUpperCase() !== method)
     return false;
-  const value = status.trim().toLowerCase();
-  if (value === "error" && !isHttpError(code)) return false;
-  if ((value === "failed" || value === "no response") && code !== 0)
+  const criterion = parseStatusFilter(status);
+  if (criterion.kind === "error" && !isHttpError(code)) return false;
+  if (criterion.kind === "no-response" && code !== 0) return false;
+  if (
+    criterion.kind === "class" &&
+    Math.floor(code / 100) !== criterion.hundreds
+  )
     return false;
-  if (/^[1-5]xx$/.test(value) && Math.floor(code / 100) !== Number(value[0]))
-    return false;
-  if (/^\d{3}$/.test(value) && code !== Number(value)) return false;
+  if (criterion.kind === "exact" && code !== criterion.code) return false;
   const needle = search.trim().toLowerCase();
   return (
     !needle ||

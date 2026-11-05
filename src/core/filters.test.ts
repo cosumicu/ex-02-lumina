@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isHttpUrl, matchesRequest, requestHost, requestPath } from "./filters";
+import {
+  isHttpUrl,
+  isValidStatusFilter,
+  matchesRequest,
+  requestHost,
+  requestPath,
+} from "./filters";
 import type { HarEntry } from "../types/request";
 
 const entry: HarEntry = {
@@ -28,6 +34,23 @@ describe("request filters", () => {
     expect(matchesRequest(noResponse, "", "All", "no response")).toBe(true);
     expect(matchesRequest(noResponse, "", "All", "error")).toBe(false);
     expect(matchesRequest(entry, "", "All", "no response")).toBe(false);
+  });
+  it("validates status input and leaves invalid input unapplied", () => {
+    for (const value of [
+      "",
+      "404",
+      " 4XX ",
+      "error",
+      "no response",
+      "failed",
+      "100",
+      "599",
+    ])
+      expect(isValidStatusFilter(value)).toBe(true);
+    for (const value of ["4", "4x", "000", "600", "404x", "timeout"])
+      expect(isValidStatusFilter(value)).toBe(false);
+    expect(matchesRequest(entry, "", "All", "4x")).toBe(true);
+    expect(matchesRequest(entry, "", "All", "500")).toBe(false);
   });
   it("accepts only HTTP traffic and presents endpoint paths", () => {
     expect(isHttpUrl(entry.request.url)).toBe(true);
