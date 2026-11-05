@@ -18,6 +18,11 @@ import {
   requestPath,
   statusCode,
 } from "../../core/filters";
+import {
+  isSensitiveName,
+  sanitizeBody,
+  sanitizeEntryForCopy,
+} from "../../core/sanitizer";
 import { formatBody, jsonTokens } from "../../utils/formatJson";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, selectedRequest } from "../stores/requestStore";
@@ -36,7 +41,16 @@ function Pairs({ items }: { items: Header[] }) {
           key={`${name}-${index}`}
           class="grid grid-cols-[minmax(95px,30%)_minmax(0,1fr)] gap-3 px-3 py-2 text-[13px]"
         >
-          <span class="break-all font-medium text-[#306caa]">{name}</span>
+          <span
+            class={`break-all font-medium ${isSensitiveName(name) ? "text-[#a12f2f]" : "text-[#306caa]"}`}
+          >
+            {name}
+            {isSensitiveName(name) && (
+              <small class="ml-1 rounded bg-[#fff0f0] px-1 py-0.5 text-[10px] font-medium text-[#a12f2f]">
+                Sensitive
+              </small>
+            )}
+          </span>
           <span class="max-h-32 overflow-auto break-all whitespace-pre-wrap text-[#383d3a]">
             {value}
           </span>
@@ -80,10 +94,12 @@ function Body({
 function Section({
   title,
   copyText,
+  redacted,
   children,
 }: {
   title: string;
   copyText: string;
+  redacted: boolean;
   children: preact.ComponentChildren;
 }) {
   const [copied, setCopied] = useState(false);
@@ -102,7 +118,7 @@ function Section({
         <h3 class="text-[13px] font-semibold text-[#252b26]">{title}</h3>
         <button
           onClick={copy}
-          aria-label={`Copy ${title.toLowerCase()}`}
+          aria-label={`Copy ${redacted ? "redacted" : "raw"} ${title.toLowerCase()}`}
           class="flex items-center gap-1 rounded px-2 py-1 text-xs text-[#69746c] hover:bg-[#edf5ef]"
         >
           <Copy size={13} />
@@ -124,6 +140,12 @@ export function RequestDetails() {
   const [tab, setTab] = useState<DetailTab>("Request");
   const [format, setFormat] = useState<CodeFormat>("curl");
   const [codeCopied, setCodeCopied] = useState(false);
+  const [rawCopyRequestId, setRawCopyRequestId] = useState<string | null>(null);
+  const redactCopies = rawCopyRequestId !== selected?.id;
+  useEffect(() => {
+    if (!selected) setRawCopyRequestId(null);
+    setCodeCopied(false);
+  }, [selected?.id]);
   useEffect(() => {
     if (selected && tab === "Response") loadResponseBody(selected);
   }, [selected?.id, tab]);
@@ -135,6 +157,7 @@ export function RequestDetails() {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
+        setRawCopyRequestId(null);
         selectRequest(null);
         return;
       }
@@ -174,8 +197,10 @@ export function RequestDetails() {
   if (!selected) return null;
   const { entry, body } = selected;
   const query = queryParameters(entry);
+  const copyEntry = redactCopies ? sanitizeEntryForCopy(entry) : entry;
+  const copyQuery = queryParameters(copyEntry);
   const code = statusCode(entry);
-  const snippet = generateCode(entry, format);
+  const snippet = generateCode(copyEntry, format);
 
   async function copyCode() {
     try {
@@ -187,10 +212,15 @@ export function RequestDetails() {
     }
   }
 
+  function closeDetails() {
+    setRawCopyRequestId(null);
+    selectRequest(null);
+  }
+
   return (
     <div
       class="fixed inset-0 z-20 flex justify-end bg-black/25"
-      onClick={() => selectRequest(null)}
+      onClick={closeDetails}
     >
       <div
         ref={dialogRef}
@@ -228,7 +258,7 @@ export function RequestDetails() {
           <button
             ref={closeButtonRef}
             aria-label="Close details"
-            onClick={() => selectRequest(null)}
+            onClick={closeDetails}
             class="shrink-0 rounded p-1 text-[#566159] hover:bg-[#eff3ef]"
           >
             <X size={20} />
@@ -246,6 +276,26 @@ export function RequestDetails() {
           </span>
           <span class="rounded-full bg-[#f1f3f1] px-2 py-1 text-[#626a64]">
             {contentType(entry)}
+          </span>
+        </div>
+        <div class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#e7ebe7] px-5 py-2 text-xs">
+          <label class="flex items-center gap-2 font-medium text-[#35433a]">
+            <input
+              type="checkbox"
+              checked={redactCopies}
+              onChange={(event) => {
+                setRawCopyRequestId(
+                  event.currentTarget.checked ? null : selected.id,
+                );
+                setCodeCopied(false);
+              }}
+            />
+            Redact copied values
+          </label>
+          <span class={redactCopies ? "text-[#69746c]" : "text-[#a86a17]"}>
+            {redactCopies
+              ? "Query values, headers, and bodies are masked in copies and code."
+              : "Raw copies may contain credentials or tokens."}
           </span>
         </div>
         <div
@@ -299,24 +349,36 @@ export function RequestDetails() {
         >
           {tab === "Request" ? (
             <>
-              <Section title="URL" copyText={entry.request.url}>
+              <Section
+                title="URL"
+                copyText={copyEntry.request.url}
+                redacted={redactCopies}
+              >
                 <p class="max-h-28 overflow-auto break-all px-3 py-2 text-[13px]">
                   {entry.request.url}
                 </p>
               </Section>
               <Section
                 title="Query parameters"
-                copyText={query.map((p) => `${p.name}=${p.value}`).join("&")}
+                copyText={copyQuery
+                  .map((p) => `${p.name}=${p.value}`)
+                  .join("&")}
+                redacted={redactCopies}
               >
                 <Pairs items={query} />
               </Section>
               <Section
                 title="Request headers"
-                copyText={headerText(entry.request.headers)}
+                copyText={headerText(copyEntry.request.headers)}
+                redacted={redactCopies}
               >
                 <Pairs items={entry.request.headers || []} />
               </Section>
-              <Section title="Request body" copyText={requestBody(entry)}>
+              <Section
+                title="Request body"
+                copyText={requestBody(copyEntry)}
+                redacted={redactCopies}
+              >
                 <Body
                   text={requestBody(entry)}
                   mimeType={entry.request.postData?.mimeType}
@@ -328,13 +390,21 @@ export function RequestDetails() {
             <>
               <Section
                 title="Response headers"
-                copyText={headerText(entry.response.headers)}
+                copyText={headerText(copyEntry.response.headers)}
+                redacted={redactCopies}
               >
                 <Pairs items={entry.response.headers || []} />
               </Section>
               <Section
                 title="Response body"
-                copyText={body?.base64 ? "" : body?.text || ""}
+                copyText={
+                  body?.base64
+                    ? ""
+                    : redactCopies
+                      ? sanitizeBody(body?.text || "")
+                      : body?.text || ""
+                }
+                redacted={redactCopies}
               >
                 {selected.bodyLoading ? (
                   <p class="px-3 py-2 text-sm text-[#89918b]">
@@ -376,11 +446,11 @@ export function RequestDetails() {
                 </label>
                 <button
                   onClick={copyCode}
-                  aria-label="Copy generated code"
+                  aria-label={`Copy ${redactCopies ? "redacted" : "raw"} generated code`}
                   class="flex items-center gap-1 rounded-md border border-[#dce4dd] px-3 py-1.5 text-xs font-medium text-[#355f40] hover:bg-[#edf5ef]"
                 >
                   <Copy size={13} />
-                  {codeCopied ? "Copied" : "Copy code"}
+                  {codeCopied ? "Copied" : "Copy"}
                 </button>
               </div>
               {snippet.warning && (
@@ -395,8 +465,9 @@ export function RequestDetails() {
                 <code>{snippet.code}</code>
               </pre>
               <p class="mt-3 text-xs text-[#7d8580]">
-                Generated code may contain captured credentials or tokens.
-                Review before sharing.
+                {redactCopies
+                  ? "Redaction masks values and body text. Review the snippet before sharing."
+                  : "Generated code may contain captured credentials or tokens. Review before sharing."}
               </p>
             </section>
           )}

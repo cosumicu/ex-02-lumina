@@ -1,25 +1,68 @@
-import type { Header, InspectorRequest } from "../types/request";
+import type { HarEntry, Header, InspectorRequest } from "../types/request";
 
-const SECRET =
-  /^(authorization|proxy-authorization|cookie|set-cookie|x-api-key|api-key)$/i;
-const SENSITIVE_PARAM = /(token|secret|password|key|auth|session|account)/i;
+const SENSITIVE_NAME =
+  /(authorization|cookie|token|secret|password|key|auth|session|account|credential|csrf)/i;
+
+export function isSensitiveName(name: string): boolean {
+  return SENSITIVE_NAME.test(name);
+}
 
 export function sanitizeHeaders(headers?: Header[]): Header[] {
   return (headers || []).map((header) => ({
     ...header,
-    value: SECRET.test(header.name) ? "[REDACTED]" : header.value,
+    value: header.value ? "[REDACTED]" : "",
   }));
 }
 
 export function sanitizeUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    for (const key of parsed.searchParams.keys())
-      if (SENSITIVE_PARAM.test(key)) parsed.searchParams.set(key, "[REDACTED]");
+    if (parsed.username) parsed.username = "REDACTED";
+    if (parsed.password) parsed.password = "REDACTED";
+    const redactedParams = new URLSearchParams();
+    for (const [key, value] of parsed.searchParams)
+      redactedParams.append(key, value ? "[REDACTED]" : "");
+    parsed.search = redactedParams.toString();
+    parsed.hash = "";
     return parsed.toString();
   } catch {
-    return url;
+    return "[REDACTED URL]";
   }
+}
+
+export function sanitizeBody(text: string): string {
+  return text ? "[REDACTED BODY]" : "";
+}
+
+export function sanitizeEntryForCopy(entry: HarEntry): HarEntry {
+  const postData = entry.request.postData;
+  return {
+    ...entry,
+    request: {
+      ...entry.request,
+      url: sanitizeUrl(entry.request.url),
+      headers: sanitizeHeaders(entry.request.headers),
+      queryString: entry.request.queryString?.map((param) => ({
+        ...param,
+        value: param.value ? "[REDACTED]" : "",
+      })),
+      postData: postData && {
+        ...postData,
+        text:
+          typeof postData.text === "string"
+            ? sanitizeBody(postData.text)
+            : undefined,
+        params: postData.params?.map((param) => ({
+          ...param,
+          value: param.value === undefined ? undefined : "[REDACTED]",
+        })),
+      },
+    },
+    response: {
+      ...entry.response,
+      headers: sanitizeHeaders(entry.response.headers),
+    },
+  };
 }
 
 export function savedMetadata(request: InspectorRequest) {
