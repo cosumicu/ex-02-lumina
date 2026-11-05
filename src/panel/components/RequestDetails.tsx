@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Copy, X } from "lucide-preact";
 import { loadResponseBody } from "../../core/capture";
 import {
@@ -22,6 +22,9 @@ import { formatBody, jsonTokens } from "../../utils/formatJson";
 import { formatTime } from "../../utils/formatTime";
 import { selectRequest, selectedRequest } from "../stores/requestStore";
 import type { Header } from "../../types/request";
+
+const DETAIL_TABS = ["Request", "Response", "Code"] as const;
+type DetailTab = (typeof DETAIL_TABS)[number];
 
 function Pairs({ items }: { items: Header[] }) {
   if (!items.length)
@@ -115,12 +118,59 @@ function Section({
 
 export function RequestDetails() {
   const selected = selectedRequest.value;
-  const [tab, setTab] = useState<"Request" | "Response" | "Code">("Request");
+  const isOpen = selected !== null;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [tab, setTab] = useState<DetailTab>("Request");
   const [format, setFormat] = useState<CodeFormat>("curl");
   const [codeCopied, setCodeCopied] = useState(false);
   useEffect(() => {
     if (selected && tab === "Response") loadResponseBody(selected);
   }, [selected?.id, tab]);
+  useEffect(() => {
+    if (!isOpen) return;
+    const returnFocus = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        selectRequest(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]):not([tabindex="-1"]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]',
+        ),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (!dialog.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      if (returnFocus?.isConnected) returnFocus.focus();
+      else
+        document
+          .querySelector<HTMLElement>('[aria-label="Search requests"]')
+          ?.focus();
+    };
+  }, [isOpen]);
   if (!selected) return null;
   const { entry, body } = selected;
   const query = queryParameters(entry);
@@ -143,6 +193,7 @@ export function RequestDetails() {
       onClick={() => selectRequest(null)}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Request details"
@@ -175,6 +226,7 @@ export function RequestDetails() {
             </p>
           </div>
           <button
+            ref={closeButtonRef}
             aria-label="Close details"
             onClick={() => selectRequest(null)}
             class="shrink-0 rounded p-1 text-[#566159] hover:bg-[#eff3ef]"
@@ -196,12 +248,38 @@ export function RequestDetails() {
             {contentType(entry)}
           </span>
         </div>
-        <div class="flex shrink-0 gap-5 border-b border-[#e7ebe7] px-5">
-          {(["Request", "Response", "Code"] as const).map((name) => (
+        <div
+          role="tablist"
+          aria-label="Request detail sections"
+          class="flex shrink-0 gap-5 border-b border-[#e7ebe7] px-5"
+          onKeyDown={(event) => {
+            const index = DETAIL_TABS.indexOf(tab);
+            let next: number;
+            if (event.key === "ArrowRight")
+              next = (index + 1) % DETAIL_TABS.length;
+            else if (event.key === "ArrowLeft")
+              next = (index + DETAIL_TABS.length - 1) % DETAIL_TABS.length;
+            else if (event.key === "Home") next = 0;
+            else if (event.key === "End") next = DETAIL_TABS.length - 1;
+            else return;
+            event.preventDefault();
+            setTab(DETAIL_TABS[next]);
+            setCodeCopied(false);
+            const tabButtons =
+              event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                '[role="tab"]',
+              );
+            tabButtons[next]?.focus();
+          }}
+        >
+          {DETAIL_TABS.map((name) => (
             <button
               key={name}
+              id={`request-details-tab-${name.toLowerCase()}`}
               role="tab"
+              aria-controls="request-details-panel"
               aria-selected={tab === name}
+              tabIndex={tab === name ? 0 : -1}
               onClick={() => {
                 setTab(name);
                 setCodeCopied(false);
@@ -212,7 +290,13 @@ export function RequestDetails() {
             </button>
           ))}
         </div>
-        <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-8">
+        <div
+          id="request-details-panel"
+          role="tabpanel"
+          aria-labelledby={`request-details-tab-${tab.toLowerCase()}`}
+          tabIndex={0}
+          class="min-h-0 flex-1 overflow-y-auto px-5 pb-8"
+        >
           {tab === "Request" ? (
             <>
               <Section title="URL" copyText={entry.request.url}>
