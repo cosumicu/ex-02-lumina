@@ -25,15 +25,15 @@ After changing the extension code, run `pnpm build` and reload the extension in 
 - Browse the latest 500 captured requests by method, path, status, and duration. The count above the list shows the limit and how many older requests have been removed. Select a row to see its URL, query parameters, headers, and available request and response bodies.
 - Search by method or URL. Filter by method, **HTTP errors** (4xx–5xx), or **No response** (no HTTP status). The status filter accepts a code such as `404`, a class such as `4xx`, `error`, or `no response`. Invalid status text shows a warning and is not applied.
 - Pause or resume capture. **Clear** removes the current list, resets the removed-request count, and resumes capture.
-- Open **Code** in a request's details to copy a cURL, JavaScript Fetch, Axios, Python Requests, or Java HttpClient example.
+- Open **Code** in a request's details to copy a cURL, JavaScript Fetch, Axios, Python Requests, or Java HttpClient example. **Redact copied values** is on by default and masks query values, header values, and bodies in copied sections and generated code. Turn it off for a raw copy.
 - Use **Save summary locally** in the filter menu to store a snapshot in the extension's IndexedDB. **View saved summaries** lets you inspect or delete snapshots and choose to keep the latest 10, 20, or 50; older snapshots are removed when you save or lower the limit.
 
 > [!CAUTION]
-> Request details and generated code can include credentials or tokens from captured traffic. Review copied content before sharing it.
+> Request details and raw copies can include credentials or tokens from captured traffic. Redacted copies retain the URL path and field names, which may also contain sensitive information. Review copied content before sharing it.
 
 ## Data and capture limits
 
-Requests stay in memory until cleared, displaced by newer requests, or the panel closes. Response bodies are loaded only when you open the **Response** tab; switching requests releases the previous body. Text previews are limited to one million characters. Chrome may omit response bodies, and binary or Base64 responses have no text preview.
+Requests stay in memory until cleared, displaced by newer requests, or the panel closes. Response bodies are loaded only when you open the **Response** tab; switching requests releases the previous body. Body previews initially show 32,000 characters, with **Show more** up to one million characters. Large JSON bodies are shown as plain text to keep rendering responsive. Chrome may omit response bodies, and binary or Base64 responses have no text preview.
 
 Saving a summary is optional. Each saved entry contains the timestamp, method, origin, status, and duration. Paths, query parameters, headers, and bodies are not saved. Summaries remain in IndexedDB until you delete them or the configured retention limit removes the oldest ones.
 
