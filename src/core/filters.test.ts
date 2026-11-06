@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  durationFilterError,
   isHttpUrl,
   isValidStatusFilter,
   matchesRequest,
@@ -57,5 +58,54 @@ describe("request filters", () => {
     expect(isHttpUrl("data:text/plain,x")).toBe(false);
     expect(requestPath(entry.request.url)).toBe("/api/users");
     expect(requestHost(entry.request.url)).toBe("example.test");
+  });
+  it("combines inclusive duration and response type filters", () => {
+    const typed: HarEntry = {
+      ...entry,
+      time: 125.5,
+      response: {
+        status: 200,
+        headers: [
+          { name: "Content-Type", value: "Application/JSON; charset=utf-8" },
+        ],
+      },
+    };
+    const filters = {
+      minDuration: "100",
+      maxDuration: "125.5",
+      contentType: "json",
+    };
+    expect(matchesRequest(typed, "users", "POST", "2xx", filters)).toBe(true);
+    expect(
+      matchesRequest(typed, "", "All", "", {
+        ...filters,
+        minDuration: "126",
+        maxDuration: "",
+      }),
+    ).toBe(false);
+    expect(
+      matchesRequest(typed, "", "All", "", {
+        ...filters,
+        contentType: "image/",
+      }),
+    ).toBe(false);
+    expect(
+      matchesRequest({ ...typed, time: undefined }, "", "All", "", filters),
+    ).toBe(false);
+    expect(matchesRequest(entry, "", "All", "", filters)).toBe(false);
+  });
+  it("validates duration bounds and ignores an invalid duration range", () => {
+    expect(durationFilterError("", "")).toBe("");
+    expect(durationFilterError("0.5", "100")).toBe("");
+    expect(durationFilterError("-1", "")).toMatch(/non-negative/);
+    expect(durationFilterError("abc", "")).toMatch(/non-negative/);
+    expect(durationFilterError("200", "100")).toMatch(/Minimum/);
+    expect(
+      matchesRequest(entry, "", "All", "", {
+        minDuration: "200",
+        maxDuration: "100",
+        contentType: "",
+      }),
+    ).toBe(true);
   });
 });

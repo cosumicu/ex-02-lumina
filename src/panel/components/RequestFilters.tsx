@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { CirclePause, CirclePlay, Filter, Search, Trash2 } from "lucide-preact";
 import { clearCapture } from "../../core/capture";
-import { isValidStatusFilter } from "../../core/filters";
+import { durationFilterError, isValidStatusFilter } from "../../core/filters";
 import {
+  contentTypeFilter,
   filterOpen,
+  maxDurationFilter,
   methodFilter,
+  minDurationFilter,
   recording,
   requests,
   search,
@@ -32,6 +35,10 @@ export function RequestFilters() {
   const [saving, setSaving] = useState(false);
   const closeSessions = useCallback(() => setShowSessions(false), []);
   const invalidStatus = !isValidStatusFilter(statusFilter.value);
+  const durationError = durationFilterError(
+    minDurationFilter.value,
+    maxDurationFilter.value,
+  );
   useEffect(() => {
     const timer = window.setTimeout(() => {
       search.value = input;
@@ -152,6 +159,66 @@ export function RequestFilters() {
               </p>
             )}
           </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-xs text-[#5f6561]">Duration (ms)</span>
+            <div class="flex items-center gap-1 text-xs text-[#5f6561]">
+              <input
+                aria-label="Minimum duration in milliseconds"
+                aria-invalid={Boolean(durationError)}
+                aria-describedby={
+                  durationError ? "duration-filter-error" : undefined
+                }
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Min"
+                value={minDurationFilter.value}
+                onInput={(event) =>
+                  (minDurationFilter.value = event.currentTarget.value)
+                }
+                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+              />
+              to
+              <input
+                aria-label="Maximum duration in milliseconds"
+                aria-invalid={Boolean(durationError)}
+                aria-describedby={
+                  durationError ? "duration-filter-error" : undefined
+                }
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Max"
+                value={maxDurationFilter.value}
+                onInput={(event) =>
+                  (maxDurationFilter.value = event.currentTarget.value)
+                }
+                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+              />
+            </div>
+            {durationError && (
+              <p
+                id="duration-filter-error"
+                role="alert"
+                class="text-xs text-[#b33434]"
+              >
+                {durationError} Duration filter not applied.
+              </p>
+            )}
+          </div>
+          <label class="flex flex-col gap-1 text-xs text-[#5f6561]">
+            Response type
+            <input
+              aria-label="Filter response content type"
+              type="search"
+              placeholder="json or image/"
+              value={contentTypeFilter.value}
+              onInput={(event) =>
+                (contentTypeFilter.value = event.currentTarget.value)
+              }
+              class="w-36 rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
+            />
+          </label>
           <div class="ml-auto flex flex-wrap items-center gap-2">
             <button
               onClick={() => {

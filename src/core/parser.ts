@@ -34,13 +34,17 @@ export function headerText(headers?: Header[]): string {
     .join("\n");
 }
 
-export function contentType(entry: HarEntry): string {
+export function responseContentType(entry: HarEntry): string {
   return (
     entry.response.content?.mimeType ||
     entry.response.headers?.find((h) => h.name.toLowerCase() === "content-type")
       ?.value ||
-    "Content type unavailable"
+    ""
   );
+}
+
+export function contentType(entry: HarEntry): string {
+  return responseContentType(entry) || "Content type unavailable";
 }
 
 export function normalizeContent(

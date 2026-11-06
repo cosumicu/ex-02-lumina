@@ -10,20 +10,26 @@ export const recording = signal(true);
 export const search = signal("");
 export const methodFilter = signal<MethodFilter>("All");
 export const statusFilter = signal("");
+export const minDurationFilter = signal("");
+export const maxDurationFilter = signal("");
+export const contentTypeFilter = signal("");
 export const filterOpen = signal(false);
 
-export const visibleRequests = computed(() =>
-  requests.value
+export const visibleRequests = computed(() => {
+  const searchValue = search.value;
+  const method = methodFilter.value;
+  const status = statusFilter.value;
+  const additional = {
+    minDuration: minDurationFilter.value,
+    maxDuration: maxDurationFilter.value,
+    contentType: contentTypeFilter.value,
+  };
+  return requests.value
     .filter(({ entry }) =>
-      matchesRequest(
-        entry,
-        search.value,
-        methodFilter.value,
-        statusFilter.value,
-      ),
+      matchesRequest(entry, searchValue, method, status, additional),
     )
-    .reverse(),
-);
+    .reverse();
+});
 export const selectedRequest = computed(
   () =>
     requests.value.find((request) => request.id === selectedId.value) || null,
