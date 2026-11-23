@@ -242,7 +242,7 @@ export function RequestFilters() {
       <div
         role="tablist"
         aria-label="Filter by method"
-        class="mt-5 flex flex-wrap items-center gap-[8px] px-[18px] pb-4"
+        class="mt-5 flex flex-nowrap items-center gap-[8px] overflow-x-auto px-[18px] pb-4"
       >
         {tabs.map((tab) => (
           <button
@@ -250,7 +250,7 @@ export function RequestFilters() {
             role="tab"
             aria-selected={methodFilter.value === tab}
             onClick={() => (methodFilter.value = tab)}
-            class={`rounded-lg px-[11px] py-[6px] text-[13px] leading-4 transition-colors ${methodFilter.value === tab ? "bg-[#f1f2f2] font-medium text-[#151719]" : "text-[#25282b] hover:bg-[#f4f6f5]"}`}
+            class={`shrink-0 rounded-lg px-[11px] py-[6px] text-[13px] leading-4 transition-colors ${methodFilter.value === tab ? "bg-[#f1f2f2] font-medium text-[#151719]" : "text-[#25282b] hover:bg-[#f4f6f5]"}`}
           >
             {tab}
           </button>

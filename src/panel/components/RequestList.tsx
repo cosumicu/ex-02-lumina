@@ -22,15 +22,15 @@ export function RequestList() {
             <button
               key={id}
               onClick={() => selectRequest(id)}
-              class="grid min-h-[72px] w-full grid-cols-[58px_minmax(0,1fr)_82px] items-start gap-2 border-b border-[#e9ebea] px-4 py-3.5 text-left last:border-b-0 hover:bg-[#f8faf9] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#22a653]"
+              class="grid min-h-[72px] w-full grid-cols-[58px_minmax(0,1fr)_82px] items-start gap-2 border-b border-[#e9ebea] px-4 py-3.5 text-left last:border-b-0 hover:bg-[#f8faf9] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#22a653] max-[500px]:grid-cols-[minmax(0,1fr)_auto]"
               aria-label={`${entry.request.method} ${entry.request.url}, ${noResponse ? "no HTTP response" : `status ${status}`}, ${formatTime(entry.time)}`}
             >
               <span
-                class={`pt-[1px] text-[15px] font-medium ${entry.request.method === "GET" ? "text-[#2469d8]" : "text-[#151719]"}`}
+                class={`pt-[1px] text-[15px] font-medium max-[500px]:order-1 ${entry.request.method === "GET" ? "text-[#2469d8]" : "text-[#151719]"}`}
               >
                 {entry.request.method}
               </span>
-              <span class="min-w-0 pt-[1px]">
+              <span class="min-w-0 pt-[1px] max-[500px]:order-3 max-[500px]:col-span-2">
                 <strong
                   class="block truncate text-[15px] font-semibold text-[#17191c]"
                   title={entry.request.url}
@@ -44,7 +44,7 @@ export function RequestList() {
                     : ""}
                 </small>
               </span>
-              <span class="flex flex-col items-end gap-1">
+              <span class="flex flex-col items-end gap-1 max-[500px]:order-2 max-[500px]:flex-row max-[500px]:items-center max-[500px]:gap-2">
                 <strong
                   class={`${noResponse ? "text-[12px] text-[#a86a17]" : `text-[15px] ${error ? "text-[#ee2d33]" : "text-[#00a446]"}`}`}
                 >
