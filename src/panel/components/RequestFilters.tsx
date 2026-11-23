@@ -85,12 +85,12 @@ export function RequestFilters() {
             class="h-11 w-full rounded-md border-0 bg-transparent pr-3 pl-10 text-[15px] text-[#17191c] outline-none placeholder:text-[#969696] focus:bg-[#f5f7f5]"
           />
         </div>
-        <div class="flex items-center gap-[15px] text-[#55595d]">
+        <div class="flex items-center gap-1 text-[#55595d]">
           <button
             aria-label="Open filters"
             title="Filters and local session"
             onClick={() => (filterOpen.value = !filterOpen.value)}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            class={`flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#e6eee8] active:bg-[#d9e8dc] ${filterOpen.value ? "bg-[#e6f4e9] text-[#126b34]" : ""}`}
             aria-expanded={filterOpen.value}
           >
             <Filter size={19} strokeWidth={1.8} />
@@ -99,9 +99,10 @@ export function RequestFilters() {
             aria-label={
               recording.value ? "Pause monitoring" : "Resume monitoring"
             }
+            aria-pressed={!recording.value}
             title={recording.value ? "Pause" : "Resume"}
             onClick={() => (recording.value = !recording.value)}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            class={`flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#e6eee8] active:bg-[#d9e8dc] ${recording.value ? "" : "bg-[#fff0d8] text-[#895d11]"}`}
           >
             {recording.value ? (
               <CirclePause size={19} strokeWidth={1.8} />
@@ -113,7 +114,7 @@ export function RequestFilters() {
             aria-label="Clear requests"
             title="Clear requests and resume"
             onClick={clearCapture}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#fff0f0] active:bg-[#f9dada]"
           >
             <Trash2 size={19} strokeWidth={1.8} />
           </button>
