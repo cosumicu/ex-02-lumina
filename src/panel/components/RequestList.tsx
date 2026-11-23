@@ -66,7 +66,9 @@ export function RequestList() {
       ) : (
         <div class="flex min-h-[190px] flex-col items-center justify-center gap-1 px-5 text-center text-sm text-[#59635c]">
           <strong class="font-medium text-[#535955]">
-            {requests.value.length ? "No matching requests" : "No requests captured yet"}
+            {requests.value.length
+              ? "No matching requests"
+              : "No requests captured yet"}
           </strong>
           {requests.value.length ? (
             <>

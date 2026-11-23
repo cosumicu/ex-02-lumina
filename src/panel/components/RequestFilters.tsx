@@ -33,6 +33,7 @@ export function RequestFilters() {
   const [message, setMessage] = useState("");
   const [showSessions, setShowSessions] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const closeSessions = useCallback(() => setShowSessions(false), []);
   const invalidStatus = !isValidStatusFilter(statusFilter.value);
   const durationError = durationFilterError(
@@ -116,13 +117,43 @@ export function RequestFilters() {
           <button
             aria-label="Clear requests"
             title="Clear requests and resume"
-            onClick={clearCapture}
+            aria-expanded={confirmClear}
+            onClick={() => {
+              if (requests.value.length) setConfirmClear(true);
+              else clearCapture();
+            }}
             class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#fff0f0] active:bg-[#f9dada]"
           >
             <Trash2 size={19} strokeWidth={1.8} />
           </button>
         </div>
       </div>
+      {confirmClear && (
+        <div
+          role="group"
+          aria-label="Confirm clear requests"
+          class="mx-[18px] mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[#f2cdcd] bg-[#fff7f7] px-3 py-2 text-sm text-[#743434]"
+        >
+          <span class="mr-auto">
+            Clear all captured requests and resume monitoring?
+          </span>
+          <button
+            onClick={() => {
+              clearCapture();
+              setConfirmClear(false);
+            }}
+            class="rounded bg-[#b33434] px-3 py-1.5 font-medium text-white hover:bg-[#902828]"
+          >
+            Clear requests
+          </button>
+          <button
+            onClick={() => setConfirmClear(false)}
+            class="rounded px-3 py-1.5 font-medium text-[#743434] hover:bg-[#f8e8e8]"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       {filterOpen.value && (
         <div class="mx-[18px] mt-1 flex flex-wrap items-center gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] px-3 py-2 shadow-sm">
           <div class="flex flex-col gap-1">
@@ -258,7 +289,9 @@ export function RequestFilters() {
           else return;
           event.preventDefault();
           methodFilter.value = tabs[next];
-          event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          event.currentTarget
+            .querySelectorAll<HTMLButtonElement>('[role="tab"]')
+            [next]?.focus();
         }}
       >
         {tabs.map((tab) => (

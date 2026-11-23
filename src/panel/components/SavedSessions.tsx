@@ -34,7 +34,7 @@ export function SavedSessions({ onClose }: { onClose: () => void }) {
       if (!dialog) return;
       const focusable = Array.from(
         dialog.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href]',
+          "button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href]",
         ),
       );
       const first = focusable[0];
