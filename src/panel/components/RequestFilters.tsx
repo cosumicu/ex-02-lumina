@@ -33,6 +33,7 @@ export function RequestFilters() {
   const [message, setMessage] = useState("");
   const [showSessions, setShowSessions] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const closeSessions = useCallback(() => setShowSessions(false), []);
   const invalidStatus = !isValidStatusFilter(statusFilter.value);
   const durationError = durationFilterError(
@@ -45,6 +46,9 @@ export function RequestFilters() {
     }, 120);
     return () => clearTimeout(timer);
   }, [input]);
+  useEffect(() => {
+    if (!search.value) setInput("");
+  }, [search.value]);
   useEffect(() => {
     if (!message) return;
     const timer = window.setTimeout(() => setMessage(""), 2500);
@@ -85,12 +89,12 @@ export function RequestFilters() {
             class="h-11 w-full rounded-md border-0 bg-transparent pr-3 pl-10 text-[15px] text-[#17191c] outline-none placeholder:text-[#969696] focus:bg-[#f5f7f5]"
           />
         </div>
-        <div class="flex items-center gap-[15px] text-[#55595d]">
+        <div class="flex items-center gap-1 text-[#55595d]">
           <button
             aria-label="Open filters"
             title="Filters and local session"
             onClick={() => (filterOpen.value = !filterOpen.value)}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            class={`flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#e6eee8] active:bg-[#d9e8dc] ${filterOpen.value ? "bg-[#e6f4e9] text-[#126b34]" : ""}`}
             aria-expanded={filterOpen.value}
           >
             <Filter size={19} strokeWidth={1.8} />
@@ -99,9 +103,10 @@ export function RequestFilters() {
             aria-label={
               recording.value ? "Pause monitoring" : "Resume monitoring"
             }
+            aria-pressed={!recording.value}
             title={recording.value ? "Pause" : "Resume"}
             onClick={() => (recording.value = !recording.value)}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            class={`flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#e6eee8] active:bg-[#d9e8dc] ${recording.value ? "" : "bg-[#fff0d8] text-[#895d11]"}`}
           >
             {recording.value ? (
               <CirclePause size={19} strokeWidth={1.8} />
@@ -112,18 +117,48 @@ export function RequestFilters() {
           <button
             aria-label="Clear requests"
             title="Clear requests and resume"
-            onClick={clearCapture}
-            class="rounded p-1 hover:bg-[#f1f3f2]"
+            aria-expanded={confirmClear}
+            onClick={() => {
+              if (requests.value.length) setConfirmClear(true);
+              else clearCapture();
+            }}
+            class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#fff0f0] active:bg-[#f9dada]"
           >
             <Trash2 size={19} strokeWidth={1.8} />
           </button>
         </div>
       </div>
+      {confirmClear && (
+        <div
+          role="group"
+          aria-label="Confirm clear requests"
+          class="mx-[18px] mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-[#f2cdcd] bg-[#fff7f7] px-3 py-2 text-sm text-[#743434]"
+        >
+          <span class="mr-auto">
+            Clear all captured requests and resume monitoring?
+          </span>
+          <button
+            onClick={() => {
+              clearCapture();
+              setConfirmClear(false);
+            }}
+            class="rounded bg-[#b33434] px-3 py-1.5 font-medium text-white hover:bg-[#902828]"
+          >
+            Clear requests
+          </button>
+          <button
+            onClick={() => setConfirmClear(false)}
+            class="rounded px-3 py-1.5 font-medium text-[#743434] hover:bg-[#f8e8e8]"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       {filterOpen.value && (
-        <div class="mx-[18px] mt-1 flex flex-wrap items-center gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] px-3 py-2 shadow-sm">
-          <div class="flex flex-col gap-1">
-            <label class="flex items-center gap-2 text-xs text-[#5f6561]">
-              Status{" "}
+        <div class="mx-[18px] mt-1 grid grid-cols-1 gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] p-3 shadow-sm min-[500px]:grid-cols-2 min-[700px]:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)]">
+          <div class="min-w-0">
+            <label class="flex flex-col gap-1 text-xs text-[#5f6561]">
+              Status
               <input
                 aria-label="Filter status code"
                 aria-invalid={invalidStatus}
@@ -137,7 +172,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (statusFilter.value = event.currentTarget.value)
                 }
-                class={`w-28 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${invalidStatus ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`w-full rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${invalidStatus ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
               <datalist id="status-options">
                 <option value="2xx" />
@@ -159,9 +194,9 @@ export function RequestFilters() {
               </p>
             )}
           </div>
-          <div class="flex flex-col gap-1">
+          <div class="min-w-0">
             <span class="text-xs text-[#5f6561]">Duration (ms)</span>
-            <div class="flex items-center gap-1 text-xs text-[#5f6561]">
+            <div class="mt-1 flex items-center gap-2 text-xs text-[#5f6561]">
               <input
                 aria-label="Minimum duration in milliseconds"
                 aria-invalid={Boolean(durationError)}
@@ -176,7 +211,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (minDurationFilter.value = event.currentTarget.value)
                 }
-                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`min-w-0 flex-1 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
               to
               <input
@@ -193,7 +228,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (maxDurationFilter.value = event.currentTarget.value)
                 }
-                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`min-w-0 flex-1 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
             </div>
             {durationError && (
@@ -206,7 +241,7 @@ export function RequestFilters() {
               </p>
             )}
           </div>
-          <label class="flex flex-col gap-1 text-xs text-[#5f6561]">
+          <label class="flex min-w-0 flex-col gap-1 text-xs text-[#5f6561]">
             Response type
             <input
               aria-label="Filter response content type"
@@ -216,23 +251,23 @@ export function RequestFilters() {
               onInput={(event) =>
                 (contentTypeFilter.value = event.currentTarget.value)
               }
-              class="w-36 rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
+              class="w-full rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
             />
           </label>
-          <div class="ml-auto flex flex-wrap items-center gap-2">
+          <div class="col-span-full flex flex-wrap items-center justify-end gap-2 border-t border-[#e4e6e5] pt-3">
             <button
               onClick={() => {
                 setShowSessions(true);
                 filterOpen.value = false;
               }}
-              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0]"
+              class="rounded border border-[#dbdfdb] bg-white px-3 py-2 text-[13px] text-[#35433a] hover:bg-[#eef8f0]"
             >
               View saved summaries
             </button>
             <button
               onClick={() => void save()}
               disabled={saving || requests.value.length === 0}
-              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0] disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded border border-[#dbdfdb] bg-white px-3 py-2 text-[13px] text-[#35433a] hover:bg-[#eef8f0] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save summary locally"}
             </button>
@@ -242,15 +277,32 @@ export function RequestFilters() {
       <div
         role="tablist"
         aria-label="Filter by method"
-        class="mt-5 flex flex-wrap items-center gap-[8px] px-[18px] pb-4"
+        class="mt-5 flex flex-nowrap items-center gap-[8px] overflow-x-auto px-[18px] pb-4"
+        onKeyDown={(event) => {
+          const index = tabs.indexOf(methodFilter.value);
+          let next: number;
+          if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+          else if (event.key === "ArrowLeft")
+            next = (index + tabs.length - 1) % tabs.length;
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          methodFilter.value = tabs[next];
+          event.currentTarget
+            .querySelectorAll<HTMLButtonElement>('[role="tab"]')
+            .item(next)
+            ?.focus();
+        }}
       >
         {tabs.map((tab) => (
           <button
             key={tab}
             role="tab"
             aria-selected={methodFilter.value === tab}
+            tabIndex={methodFilter.value === tab ? 0 : -1}
             onClick={() => (methodFilter.value = tab)}
-            class={`rounded-lg px-[11px] py-[6px] text-[13px] leading-4 transition-colors ${methodFilter.value === tab ? "bg-[#f1f2f2] font-medium text-[#151719]" : "text-[#25282b] hover:bg-[#f4f6f5]"}`}
+            class={`shrink-0 rounded-lg px-[11px] py-[6px] text-[13px] leading-4 transition-colors ${methodFilter.value === tab ? "bg-[#f1f2f2] font-medium text-[#151719]" : "text-[#25282b] hover:bg-[#f4f6f5]"}`}
           >
             {tab}
           </button>

@@ -375,7 +375,7 @@ export function RequestDetails() {
                 setTab(name);
                 setCodeCopied(false);
               }}
-              class={`border-b-2 py-3 text-sm ${tab === name ? "border-[#0ba342] font-semibold text-[#1a3e26]" : "border-transparent text-[#798079]"}`}
+              class={`border-b-2 py-3 text-sm ${tab === name ? "border-[#0ba342] font-semibold text-[#1a3e26]" : "border-transparent text-[#59635c]"}`}
             >
               {name}
             </button>

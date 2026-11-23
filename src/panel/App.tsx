@@ -42,7 +42,6 @@ export function App() {
         <RequestFilters />
         <div
           class={`mx-[18px] mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-3 py-2 text-xs ${requests.value.length >= MAX_REQUESTS ? "bg-[#fff7e7] text-[#8a5b16]" : "bg-[#f6f8f6] text-[#68746b]"}`}
-          aria-live="polite"
         >
           <span>
             {visibleRequests.value.length === requests.value.length
@@ -62,6 +61,11 @@ export function App() {
             </span>
           )}
         </div>
+        <span class="sr-only" role="status">
+          {requests.value.length >= MAX_REQUESTS
+            ? "Request limit reached. New requests will replace older ones."
+            : ""}
+        </span>
         <RequestList />
         <RequestDetails />
       </main>
