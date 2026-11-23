@@ -37,7 +37,7 @@ export function RequestList() {
                 >
                   {requestPath(entry.request.url)}
                 </strong>
-                <small class="block truncate pt-1 text-xs text-[#8a908c]">
+                <small class="block truncate pt-1 text-xs text-[#59635c]">
                   {requestHost(entry.request.url)}
                   {queryCount
                     ? ` · ${queryCount} ${queryCount === 1 ? "parameter" : "parameters"}`
@@ -46,11 +46,11 @@ export function RequestList() {
               </span>
               <span class="flex flex-col items-end gap-1 max-[500px]:order-2 max-[500px]:flex-row max-[500px]:items-center max-[500px]:gap-2">
                 <strong
-                  class={`${noResponse ? "text-[12px] text-[#a86a17]" : `text-[15px] ${error ? "text-[#ee2d33]" : "text-[#00a446]"}`}`}
+                  class={`${noResponse ? "text-[12px] text-[#895d11]" : `text-[15px] ${error ? "text-[#b33434]" : "text-[#008039]"}`}`}
                 >
                   {noResponse ? "No response" : status}
                 </strong>
-                <small class="whitespace-nowrap text-[13px] text-[#969696]">
+                <small class="whitespace-nowrap text-[13px] text-[#59635c]">
                   {formatTime(entry.time)}
                 </small>
               </span>
@@ -58,7 +58,7 @@ export function RequestList() {
           );
         })
       ) : (
-        <div class="flex min-h-[190px] flex-col items-center justify-center gap-1 px-5 text-center text-sm text-[#888d8b]">
+        <div class="flex min-h-[190px] flex-col items-center justify-center gap-1 px-5 text-center text-sm text-[#59635c]">
           <strong class="font-medium text-[#535955]">
             No requests to show
           </strong>
