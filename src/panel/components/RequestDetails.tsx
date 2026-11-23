@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Copy, X } from "lucide-preact";
 import { loadResponseBody } from "../../core/capture";
 import {
@@ -75,8 +75,15 @@ function Body({
   fallback: string;
 }) {
   const [previewLimit, setPreviewLimit] = useState(INITIAL_PREVIEW_CHARS);
+  const formatted = useMemo(
+    () => formatBody(text, mimeType, previewLimit),
+    [text, mimeType, previewLimit],
+  );
+  const tokens = useMemo(
+    () => (formatted.json ? jsonTokens(formatted.text) : null),
+    [formatted],
+  );
   if (!text) return <p class="px-3 py-2 text-sm text-[#89918b]">{fallback}</p>;
-  const formatted = formatBody(text, mimeType, previewLimit);
   return (
     <div class="max-h-[44vh] overflow-auto px-3 py-2">
       {formatted.truncated &&
@@ -100,8 +107,8 @@ function Body({
           </p>
         ))}
       <pre class="whitespace-pre-wrap break-all font-mono text-[12px] leading-relaxed text-[#333b35]">
-        {formatted.json
-          ? jsonTokens(formatted.text).map((part, index) => (
+        {tokens
+          ? tokens.map((part, index) => (
               <span key={index} class={part.kind ? `json-${part.kind}` : ""}>
                 {part.text}
               </span>
@@ -163,6 +170,20 @@ export function RequestDetails() {
   const [codeCopied, setCodeCopied] = useState(false);
   const [rawCopyRequestId, setRawCopyRequestId] = useState<string | null>(null);
   const redactCopies = rawCopyRequestId !== selected?.id;
+  const copyEntry = useMemo(
+    () =>
+      selected
+        ? redactCopies
+          ? sanitizeEntryForCopy(selected.entry)
+          : selected.entry
+        : null,
+    [selected?.entry, redactCopies],
+  );
+  const snippet = useMemo(
+    () =>
+      tab === "Code" && copyEntry ? generateCode(copyEntry, format) : null,
+    [tab, copyEntry, format],
+  );
   useEffect(() => {
     if (!selected) setRawCopyRequestId(null);
     setCodeCopied(false);
@@ -215,15 +236,14 @@ export function RequestDetails() {
           ?.focus();
     };
   }, [isOpen]);
-  if (!selected) return null;
+  if (!selected || !copyEntry) return null;
   const { entry, body } = selected;
   const query = queryParameters(entry);
-  const copyEntry = redactCopies ? sanitizeEntryForCopy(entry) : entry;
-  const copyQuery = queryParameters(copyEntry);
+  const copyQuery = tab === "Request" ? queryParameters(copyEntry) : [];
   const code = statusCode(entry);
-  const snippet = generateCode(copyEntry, format);
 
   async function copyCode() {
+    if (!snippet) return;
     try {
       await navigator.clipboard.writeText(snippet.code);
       setCodeCopied(true);
@@ -476,7 +496,7 @@ export function RequestDetails() {
                   {codeCopied ? "Copied" : "Copy"}
                 </button>
               </div>
-              {snippet.warning && (
+              {snippet?.warning && (
                 <p
                   role="note"
                   class="mb-3 rounded-md bg-[#fff5dd] px-3 py-2 text-xs text-[#895d11]"
@@ -485,7 +505,7 @@ export function RequestDetails() {
                 </p>
               )}
               <pre class="max-h-[65vh] overflow-auto rounded-lg border border-[#e3e8e3] bg-[#fbfcfb] p-3 font-mono text-[12px] leading-relaxed text-[#333b35]">
-                <code>{snippet.code}</code>
+                <code>{snippet?.code}</code>
               </pre>
               <p class="mt-3 text-xs text-[#7d8580]">
                 {redactCopies
