@@ -15,6 +15,15 @@ export const maxDurationFilter = signal("");
 export const contentTypeFilter = signal("");
 export const filterOpen = signal(false);
 
+export function resetFilters(): void {
+  search.value = "";
+  methodFilter.value = "All";
+  statusFilter.value = "";
+  minDurationFilter.value = "";
+  maxDurationFilter.value = "";
+  contentTypeFilter.value = "";
+}
+
 export const visibleRequests = computed(() => {
   const searchValue = search.value;
   const method = methodFilter.value;

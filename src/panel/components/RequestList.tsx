@@ -6,7 +6,13 @@ import {
 } from "../../core/filters";
 import { queryParameters } from "../../core/parser";
 import { formatTime } from "../../utils/formatTime";
-import { selectRequest, visibleRequests } from "../stores/requestStore";
+import {
+  recording,
+  requests,
+  resetFilters,
+  selectRequest,
+  visibleRequests,
+} from "../stores/requestStore";
 
 export function RequestList() {
   const visible = visibleRequests.value;
@@ -60,9 +66,28 @@ export function RequestList() {
       ) : (
         <div class="flex min-h-[190px] flex-col items-center justify-center gap-1 px-5 text-center text-sm text-[#59635c]">
           <strong class="font-medium text-[#535955]">
-            No requests to show
+            {requests.value.length ? "No matching requests" : "No requests captured yet"}
           </strong>
-          <span>Reload the inspected tab or adjust your filters.</span>
+          {requests.value.length ? (
+            <>
+              <span>Try a broader search or clear the active filters.</span>
+              <button
+                onClick={resetFilters}
+                class="mt-2 rounded-lg border border-[#cddbd0] px-3 py-2 font-medium text-[#126b34] hover:bg-[#edf5ef]"
+              >
+                Clear filters
+              </button>
+            </>
+          ) : recording.value ? (
+            <span>Reload the inspected tab to capture its requests.</span>
+          ) : (
+            <button
+              onClick={() => (recording.value = true)}
+              class="mt-2 rounded-lg border border-[#cddbd0] px-3 py-2 font-medium text-[#126b34] hover:bg-[#edf5ef]"
+            >
+              Resume capture
+            </button>
+          )}
         </div>
       )}
     </div>

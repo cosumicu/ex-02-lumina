@@ -46,6 +46,9 @@ export function RequestFilters() {
     return () => clearTimeout(timer);
   }, [input]);
   useEffect(() => {
+    if (!search.value) setInput("");
+  }, [search.value]);
+  useEffect(() => {
     if (!message) return;
     const timer = window.setTimeout(() => setMessage(""), 2500);
     return () => clearTimeout(timer);
