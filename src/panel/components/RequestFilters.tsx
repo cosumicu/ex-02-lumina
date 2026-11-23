@@ -291,7 +291,8 @@ export function RequestFilters() {
           methodFilter.value = tabs[next];
           event.currentTarget
             .querySelectorAll<HTMLButtonElement>('[role="tab"]')
-            [next]?.focus();
+            .item(next)
+            ?.focus();
         }}
       >
         {tabs.map((tab) => (
