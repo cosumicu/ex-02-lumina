@@ -155,10 +155,10 @@ export function RequestFilters() {
         </div>
       )}
       {filterOpen.value && (
-        <div class="mx-[18px] mt-1 flex flex-wrap items-center gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] px-3 py-2 shadow-sm">
-          <div class="flex flex-col gap-1">
-            <label class="flex items-center gap-2 text-xs text-[#5f6561]">
-              Status{" "}
+        <div class="mx-[18px] mt-1 grid grid-cols-1 gap-3 rounded-lg border border-[#e4e6e5] bg-[#fbfcfb] p-3 shadow-sm min-[500px]:grid-cols-2 min-[700px]:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)]">
+          <div class="min-w-0">
+            <label class="flex flex-col gap-1 text-xs text-[#5f6561]">
+              Status
               <input
                 aria-label="Filter status code"
                 aria-invalid={invalidStatus}
@@ -172,7 +172,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (statusFilter.value = event.currentTarget.value)
                 }
-                class={`w-28 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${invalidStatus ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`w-full rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${invalidStatus ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
               <datalist id="status-options">
                 <option value="2xx" />
@@ -194,9 +194,9 @@ export function RequestFilters() {
               </p>
             )}
           </div>
-          <div class="flex flex-col gap-1">
+          <div class="min-w-0">
             <span class="text-xs text-[#5f6561]">Duration (ms)</span>
-            <div class="flex items-center gap-1 text-xs text-[#5f6561]">
+            <div class="mt-1 flex items-center gap-2 text-xs text-[#5f6561]">
               <input
                 aria-label="Minimum duration in milliseconds"
                 aria-invalid={Boolean(durationError)}
@@ -211,7 +211,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (minDurationFilter.value = event.currentTarget.value)
                 }
-                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`min-w-0 flex-1 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
               to
               <input
@@ -228,7 +228,7 @@ export function RequestFilters() {
                 onInput={(event) =>
                   (maxDurationFilter.value = event.currentTarget.value)
                 }
-                class={`w-20 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
+                class={`min-w-0 flex-1 rounded border bg-white px-2 py-1 text-sm text-[#17191c] outline-none ${durationError ? "border-[#d34444] focus:border-[#d34444]" : "border-[#dbdfdb] focus:border-[#16a34a]"}`}
               />
             </div>
             {durationError && (
@@ -241,7 +241,7 @@ export function RequestFilters() {
               </p>
             )}
           </div>
-          <label class="flex flex-col gap-1 text-xs text-[#5f6561]">
+          <label class="flex min-w-0 flex-col gap-1 text-xs text-[#5f6561]">
             Response type
             <input
               aria-label="Filter response content type"
@@ -251,23 +251,23 @@ export function RequestFilters() {
               onInput={(event) =>
                 (contentTypeFilter.value = event.currentTarget.value)
               }
-              class="w-36 rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
+              class="w-full rounded border border-[#dbdfdb] bg-white px-2 py-1 text-sm text-[#17191c] outline-none focus:border-[#16a34a]"
             />
           </label>
-          <div class="ml-auto flex flex-wrap items-center gap-2">
+          <div class="col-span-full flex flex-wrap items-center justify-end gap-2 border-t border-[#e4e6e5] pt-3">
             <button
               onClick={() => {
                 setShowSessions(true);
                 filterOpen.value = false;
               }}
-              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0]"
+              class="rounded border border-[#dbdfdb] bg-white px-3 py-2 text-[13px] text-[#35433a] hover:bg-[#eef8f0]"
             >
               View saved summaries
             </button>
             <button
               onClick={() => void save()}
               disabled={saving || requests.value.length === 0}
-              class="rounded border border-[#dbdfdb] bg-white px-2 py-1 text-xs text-[#35433a] hover:bg-[#eef8f0] disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded border border-[#dbdfdb] bg-white px-3 py-2 text-[13px] text-[#35433a] hover:bg-[#eef8f0] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save summary locally"}
             </button>
