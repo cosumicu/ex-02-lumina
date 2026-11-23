@@ -18,11 +18,38 @@ export function SavedSessions({ onClose }: { onClose: () => void }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [retention, setRetention] = useState<RetentionLimit>(getRetentionLimit);
   const closeButton = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const returnFocus = document.activeElement as HTMLElement | null;
     closeButton.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href]',
+        ),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (!dialog.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     let active = true;
@@ -40,6 +67,11 @@ export function SavedSessions({ onClose }: { onClose: () => void }) {
     return () => {
       active = false;
       window.removeEventListener("keydown", onKeyDown);
+      if (returnFocus?.isConnected) returnFocus.focus();
+      else
+        document
+          .querySelector<HTMLElement>('[aria-label="Open filters"]')
+          ?.focus();
     };
   }, [onClose]);
 
@@ -97,6 +129,7 @@ export function SavedSessions({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Saved summaries"

@@ -247,12 +247,26 @@ export function RequestFilters() {
         role="tablist"
         aria-label="Filter by method"
         class="mt-5 flex flex-nowrap items-center gap-[8px] overflow-x-auto px-[18px] pb-4"
+        onKeyDown={(event) => {
+          const index = tabs.indexOf(methodFilter.value);
+          let next: number;
+          if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+          else if (event.key === "ArrowLeft")
+            next = (index + tabs.length - 1) % tabs.length;
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          methodFilter.value = tabs[next];
+          event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+        }}
       >
         {tabs.map((tab) => (
           <button
             key={tab}
             role="tab"
             aria-selected={methodFilter.value === tab}
+            tabIndex={methodFilter.value === tab ? 0 : -1}
             onClick={() => (methodFilter.value = tab)}
             class={`shrink-0 rounded-lg px-[11px] py-[6px] text-[13px] leading-4 transition-colors ${methodFilter.value === tab ? "bg-[#f1f2f2] font-medium text-[#151719]" : "text-[#25282b] hover:bg-[#f4f6f5]"}`}
           >
